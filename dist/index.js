@@ -346,16 +346,11 @@ var init_forge = __esm({
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "node:url";
-function resolveFromRoot(...segments) {
-  return path.resolve(projectRoot, ...segments);
-}
 function ensureDir(dirPath) {
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
-  }
+  tryEnsureDir(dirPath);
 }
 function ensureGeneratedSubdir(...segments) {
-  const target = resolveFromRoot("generated", ...segments);
+  const target = path.resolve(GENERATED_BASE, ...segments);
   ensureDir(target);
   return target;
 }
@@ -363,12 +358,37 @@ function getGeneratedPublicPath(...segments) {
   const cleaned = segments.filter(Boolean).join("/");
   return `/generated/${cleaned}`.replace(/\/+/g, "/");
 }
-var currentDir, projectRoot;
+var currentDir, projectRoot, tryEnsureDir, resolveGeneratedBase, GENERATED_BASE;
 var init_paths = __esm({
   "server/_core/paths.ts"() {
     "use strict";
     currentDir = path.dirname(fileURLToPath(import.meta.url));
     projectRoot = path.resolve(currentDir, "..", "..");
+    tryEnsureDir = (dirPath) => {
+      if (!dirPath) return null;
+      try {
+        if (!fs.existsSync(dirPath)) {
+          fs.mkdirSync(dirPath, { recursive: true });
+        }
+        fs.accessSync(dirPath, fs.constants.W_OK);
+        return dirPath;
+      } catch (error) {
+        console.warn("[Paths] Unable to ensure directory:", dirPath, error);
+        return null;
+      }
+    };
+    resolveGeneratedBase = () => {
+      const envRoot = tryEnsureDir(process.env.GENERATED_ROOT ?? void 0);
+      if (envRoot) return envRoot;
+      const localRoot = tryEnsureDir(path.resolve(projectRoot, "generated"));
+      if (localRoot) return localRoot;
+      const tmpRoot = tryEnsureDir(
+        path.resolve(process.env.TMPDIR || "/tmp", "aisongmaker", "generated")
+      );
+      if (tmpRoot) return tmpRoot;
+      return path.resolve(projectRoot, "generated");
+    };
+    GENERATED_BASE = resolveGeneratedBase();
   }
 });
 
@@ -1154,27 +1174,27 @@ import path3 from "node:path";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
 import { defineConfig } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
-var currentDir2, resolveFromRoot2, plugins, vite_config_default;
+var currentDir2, resolveFromRoot, plugins, vite_config_default;
 var init_vite_config = __esm({
   "vite.config.ts"() {
     "use strict";
     currentDir2 = path3.dirname(fileURLToPath2(import.meta.url));
-    resolveFromRoot2 = (...segments) => path3.resolve(currentDir2, ...segments);
+    resolveFromRoot = (...segments) => path3.resolve(currentDir2, ...segments);
     plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime()];
     vite_config_default = defineConfig({
       plugins,
       resolve: {
         alias: {
-          "@": resolveFromRoot2("client", "src"),
-          "@shared": resolveFromRoot2("shared"),
-          "@assets": resolveFromRoot2("attached_assets")
+          "@": resolveFromRoot("client", "src"),
+          "@shared": resolveFromRoot("shared"),
+          "@assets": resolveFromRoot("attached_assets")
         }
       },
       envDir: currentDir2,
-      root: resolveFromRoot2("client"),
-      publicDir: resolveFromRoot2("client", "public"),
+      root: resolveFromRoot("client"),
+      publicDir: resolveFromRoot("client", "public"),
       build: {
-        outDir: resolveFromRoot2("dist/public"),
+        outDir: resolveFromRoot("dist/public"),
         emptyOutDir: true
       },
       server: {
@@ -2187,7 +2207,7 @@ import path4 from "path";
 import cryptoNative from "node:crypto";
 import { fileURLToPath as fileURLToPath3 } from "node:url";
 var currentDir3 = path4.dirname(fileURLToPath3(import.meta.url));
-var resolveFromRoot3 = (...segments) => path4.resolve(currentDir3, ...segments);
+var resolveFromRoot2 = (...segments) => path4.resolve(currentDir3, ...segments);
 var normalizeHashInput = (input) => {
   if (typeof input === "string") return input;
   if (ArrayBuffer.isView(input)) {
@@ -2241,7 +2261,7 @@ async function setupVite(app, server) {
         if (/\.[\w-]+$/.test(requestPath)) {
           return next();
         }
-        const clientTemplate = resolveFromRoot3("..", "..", "client", "index.html");
+        const clientTemplate = resolveFromRoot2("..", "..", "client", "index.html");
         let template = await fs3.promises.readFile(clientTemplate, "utf-8");
         template = template.replace(
           `src="/src/main.tsx"`,
@@ -2262,7 +2282,7 @@ async function setupVite(app, server) {
   }
 }
 function serveStatic(app) {
-  const distPath = process.env.NODE_ENV === "development" ? resolveFromRoot3("..", "..", "dist", "public") : resolveFromRoot3("public");
+  const distPath = process.env.NODE_ENV === "development" ? resolveFromRoot2("..", "..", "dist", "public") : resolveFromRoot2("public");
   if (!fs3.existsSync(distPath)) {
     console.error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
