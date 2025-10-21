@@ -61,14 +61,14 @@ export async function storagePut(
   const key = normalizeKey(relKey);
   const body = toBuffer(data);
 
-  await client.send(
-    new PutObjectCommand({
-      Bucket: ENV.s3Bucket,
-      Key: key,
-      Body: body,
-      ContentType: contentType,
-    })
-  );
+  const command = new PutObjectCommand({
+    Bucket: ENV.s3Bucket,
+    Key: key,
+    Body: body,
+    ContentType: contentType,
+  });
+
+  await (client as unknown as { send: (input: unknown) => Promise<unknown> }).send(command);
 
   return {
     key,

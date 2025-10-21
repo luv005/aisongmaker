@@ -366,14 +366,14 @@ const invokeForge = async (params: InvokeParams): Promise<InvokeResult> => {
     payload.response_format = normalizedResponseFormat;
   }
 
-  const response = await fetch(resolveApiUrl(), {
+  const response = (await fetch(resolveApiUrl(), {
     method: "POST",
     headers: {
       "content-type": "application/json",
       authorization: `Bearer ${ENV.forgeApiKey}`,
     },
     body: JSON.stringify(payload),
-  });
+  })) as any;
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -546,14 +546,14 @@ const invokeOpenAI = async (params: InvokeParams): Promise<InvokeResult> => {
     max_tokens: params.maxTokens ?? params.max_tokens ?? 1024,
   });
 
-  const response = await fetch(OPENAI_CHAT_COMPLETIONS_URL, {
+  const response = (await fetch(OPENAI_CHAT_COMPLETIONS_URL, {
     method: "POST",
     headers: {
       "content-type": "application/json",
       authorization: `Bearer ${ENV.openaiApiKey}`,
     },
     body,
-  });
+  })) as any;
 
   if (!response.ok) {
     const errorText = await response.text();

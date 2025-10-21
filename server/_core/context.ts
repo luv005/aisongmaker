@@ -11,7 +11,11 @@ export type TrpcContext = {
 export async function createContext(
   opts: CreateExpressContextOptions
 ): Promise<TrpcContext> {
-  console.log("[Context] Creating context for request:", opts.req.url);
+  const requestUrl =
+    typeof (opts.req as { url?: unknown }).url === "string"
+      ? (opts.req as { url: string }).url
+      : "(unknown)";
+  console.log("[Context] Creating context for request:", requestUrl);
   let user: User | null = null;
 
   try {

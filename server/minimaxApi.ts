@@ -179,14 +179,14 @@ export async function generateMusic(
     console.log("[MiniMax] Generating music with prompt:", stylePrompt);
     console.log("[MiniMax] Request body:", JSON.stringify(requestBody, null, 2));
 
-    const response = await fetch(`${MINIMAX_API_BASE}?GroupId=${MINIMAX_GROUP_ID}`, {
+    const response = (await fetch(`${MINIMAX_API_BASE}?GroupId=${MINIMAX_GROUP_ID}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify(requestBody),
-    });
+    })) as any;
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -197,7 +197,7 @@ export async function generateMusic(
       };
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
     console.log("[MiniMax] API response:", JSON.stringify(data, null, 2));
 
     // Check for API errors (status_code 0 means success)
@@ -295,14 +295,14 @@ export async function pollTaskCompletion(
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
-      const response = await fetch(
+      const response = (await fetch(
         `${MINIMAX_API_BASE}/${taskId}?GroupId=${MINIMAX_GROUP_ID}`,
         {
           headers: {
             "Authorization": `Bearer ${apiKey}`,
           },
         }
-      );
+      )) as any;
 
       if (!response.ok) {
         console.error("[MiniMax] Poll error:", response.status);
@@ -310,7 +310,7 @@ export async function pollTaskCompletion(
         continue;
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       console.log(`[MiniMax] Poll attempt ${attempt + 1}:`, data);
 
       // Check status

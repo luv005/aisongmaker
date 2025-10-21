@@ -1,11 +1,12 @@
 import express from "express";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerOAuthRoutes } from "./server/_core/oauth.js";
-import { appRouter } from "./server/routers.js";
-import { createContext } from "./server/_core/context.js";
+import { registerOAuthRoutes } from "../server/_core/oauth.js";
+import { appRouter } from "../server/routers.js";
+import { createContext } from "../server/_core/context.js";
 import { webcrypto } from "node:crypto";
-import { ensureGeneratedSubdir } from "./server/_core/paths.js";
+import { ensureGeneratedSubdir } from "../server/_core/paths.js";
 import path from "path";
+import { readFileSync } from "node:fs";
 
 if (typeof globalThis.crypto === "undefined") {
   (globalThis as unknown as { crypto: typeof webcrypto }).crypto = webcrypto;
@@ -38,9 +39,23 @@ app.use(
 );
 
 // Serve index.html for all other routes (SPA)
-app.get("*", (req: express.Request, res: express.Response) => {
-  res.sendFile(path.join(publicPath, "index.html"));
+app.get("*", (_req: unknown, res: unknown) => {
+  const resAny = res as {
+    sendFile?: (filePath: string) => void;
+    setHeader?: (name: string, value: string) => void;
+    send?: (body: unknown) => void;
+    status?: (code: number) => unknown;
+  };
+
+  if (typeof resAny.sendFile === "function") {
+    resAny.sendFile(path.join(publicPath, "index.html"));
+    return;
+  }
+
+  const html = readFileSync(path.join(publicPath, "index.html"), "utf8");
+  resAny.status?.(200);
+  resAny.setHeader?.("Content-Type", "text/html; charset=utf-8");
+  resAny.send?.(html);
 });
 
 export default app;
-

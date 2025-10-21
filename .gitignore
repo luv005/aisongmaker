@@ -6,3 +6,4 @@ generated
 api/server/
 api/drizzle/
 api/shared/
+.vercel

@@ -386,14 +386,13 @@ async function storagePut(relKey, data, contentType = "application/octet-stream"
   const client = ensureClient();
   const key = normalizeKey(relKey);
   const body = toBuffer(data);
-  await client.send(
-    new PutObjectCommand({
-      Bucket: ENV.s3Bucket,
-      Key: key,
-      Body: body,
-      ContentType: contentType
-    })
-  );
+  const command = new PutObjectCommand({
+    Bucket: ENV.s3Bucket,
+    Key: key,
+    Body: body,
+    ContentType: contentType
+  });
+  await client.send(command);
   return {
     key,
     url: buildPublicUrl(key)
@@ -584,11 +583,19 @@ async function generateMusic(params) {
       };
     }
     const data = await response.json();
-    console.log("[MiniMax] API response:", JSON.stringify(data).substring(0, 200));
+    console.log("[MiniMax] API response:", JSON.stringify(data, null, 2));
     if (data.base_resp && data.base_resp.status_code !== 0) {
+      console.error("[MiniMax] API error response:", data.base_resp);
       return {
         success: false,
         error: data.base_resp.status_msg || "API error"
+      };
+    }
+    if (data.error) {
+      console.error("[MiniMax] Error in response:", data.error);
+      return {
+        success: false,
+        error: typeof data.error === "string" ? data.error : JSON.stringify(data.error)
       };
     }
     if (data.data && data.data.audio) {
@@ -1209,15 +1216,17 @@ import { OAuth2Client } from "google-auth-library";
 
 // server/_core/cookies.ts
 function isSecureRequest(req) {
-  if (req.protocol === "https") return true;
-  const forwardedProto = req.headers["x-forwarded-proto"];
+  const proto = req.protocol;
+  if (proto && proto.toLowerCase() === "https") return true;
+  const forwardedProto = req.headers?.["x-forwarded-proto"];
   if (!forwardedProto) return false;
   const protoList = Array.isArray(forwardedProto) ? forwardedProto : forwardedProto.split(",");
-  return protoList.some((proto) => proto.trim().toLowerCase() === "https");
+  return protoList.some((item) => item.trim().toLowerCase() === "https");
 }
 function getSessionCookieOptions(req) {
   const secure = isSecureRequest(req);
   return {
+    domain: void 0,
     httpOnly: true,
     path: "/",
     sameSite: secure ? "none" : "lax",
@@ -1332,7 +1341,10 @@ var SDKServer = class {
       console.warn("[Auth] OAuth disabled, using development account");
       return this.ensureDevUser();
     }
-    const cookies = this.parseCookies(req.headers.cookie);
+    const headers = req?.headers ?? {};
+    const rawCookie = headers.cookie;
+    const cookieHeader = Array.isArray(rawCookie) ? rawCookie.join("; ") : rawCookie;
+    const cookies = this.parseCookies(cookieHeader);
     const sessionCookie = cookies.get(COOKIE_NAME);
     const session = await this.verifySession(sessionCookie);
     if (!session) {
@@ -1354,10 +1366,10 @@ var SDKServer = class {
 var sdk = new SDKServer();
 
 // server/_core/oauth.ts
-function getQueryParam(req, key) {
-  const value = req.query[key];
+var getQueryParam = (req, key) => {
+  const value = req.query?.[key];
   return typeof value === "string" ? value : void 0;
-}
+};
 var decodeState = (state) => {
   if (!state) return null;
   try {
@@ -1371,29 +1383,55 @@ var decodeState = (state) => {
   }
 };
 var determineRedirectUri = (req) => {
-  const forwardedProto = req.headers["x-forwarded-proto"];
-  const proto = typeof forwardedProto === "string" ? forwardedProto.split(",")[0] : req.protocol;
-  const forwardedHost = req.headers["x-forwarded-host"];
-  const host = typeof forwardedHost === "string" ? forwardedHost.split(",")[0] : req.get("host") ?? "localhost:3000";
+  const headers = req.headers ?? {};
+  const forwardedProtoHeader = headers["x-forwarded-proto"];
+  const protoCandidate = typeof forwardedProtoHeader === "string" ? forwardedProtoHeader.split(",")[0] : Array.isArray(forwardedProtoHeader) ? forwardedProtoHeader[0] : void 0;
+  const proto = protoCandidate ?? req.protocol ?? "http";
+  const forwardedHostHeader = headers["x-forwarded-host"];
+  const hostCandidate = typeof forwardedHostHeader === "string" ? forwardedHostHeader.split(",")[0] : Array.isArray(forwardedHostHeader) ? forwardedHostHeader[0] : void 0;
+  const host = hostCandidate ?? headers.host ?? req.get?.("host") ?? "localhost:3000";
   return `${proto}://${host}/api/oauth/callback`;
+};
+var setStatus = (res, statusCode) => {
+  if (typeof res.status === "function") {
+    const result = res.status(statusCode);
+    if (result && typeof result === "object") {
+      return result;
+    }
+  }
+  return res;
+};
+var sendJson = (res, statusCode, body) => {
+  const target = setStatus(res, statusCode);
+  target.json?.(body);
+};
+var redirect = (res, status, url) => {
+  if (typeof res.redirect === "function") {
+    try {
+      res.redirect(status, url);
+      return;
+    } catch {
+      res.redirect(url);
+    }
+  }
 };
 function registerOAuthRoutes(app) {
   app.get("/api/oauth/callback", async (req, res) => {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");
     if (!code) {
-      res.status(400).json({ error: "Authorization code is required" });
+      sendJson(res, 400, { error: "Authorization code is required" });
       return;
     }
     if (!ENV.oauthEnabled) {
-      res.redirect(302, "/");
+      redirect(res, 302, "/");
       return;
     }
     if (!ENV.googleClientId || !ENV.googleClientSecret) {
       console.error(
         "[OAuth] Google credentials missing. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET."
       );
-      res.status(500).json({ error: "OAuth provider is not configured" });
+      sendJson(res, 500, { error: "OAuth provider is not configured" });
       return;
     }
     try {
@@ -1429,11 +1467,14 @@ function registerOAuthRoutes(app) {
         name: payload.name ?? "",
         expiresInMs: ONE_YEAR_MS
       });
-      const cookieOptions = getSessionCookieOptions(req);
-      res.cookie(COOKIE_NAME, sessionToken, {
-        ...cookieOptions,
-        maxAge: ONE_YEAR_MS
-      });
+      res.cookie?.(
+        COOKIE_NAME,
+        sessionToken,
+        {
+          ...getSessionCookieOptions(req),
+          maxAge: ONE_YEAR_MS
+        }
+      );
       const fallbackTarget = "/";
       let redirectTarget = decodeState(state) ?? fallbackTarget;
       const callbackUrl = determineRedirectUri(req);
@@ -1443,10 +1484,10 @@ function registerOAuthRoutes(app) {
       console.log(
         `[OAuth] Login successful for Google user ${payload.sub}, redirecting to ${redirectTarget}`
       );
-      res.redirect(302, redirectTarget);
+      redirect(res, 302, redirectTarget);
     } catch (error) {
       console.error("[OAuth] Callback failed", error);
-      res.status(500).json({ error: "OAuth callback failed" });
+      sendJson(res, 500, { error: "OAuth callback failed" });
     }
   });
 }
@@ -1861,7 +1902,8 @@ var appRouter = router({
     me: publicProcedure.query((opts) => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+      const resAny = ctx.res;
+      resAny.clearCookie?.(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return {
         success: true
       };
@@ -2113,7 +2155,8 @@ ${lyrics}`
 
 // server/_core/context.ts
 async function createContext(opts) {
-  console.log("[Context] Creating context for request:", opts.req.url);
+  const requestUrl = typeof opts.req.url === "string" ? opts.req.url : "(unknown)";
+  console.log("[Context] Creating context for request:", requestUrl);
   let user = null;
   try {
     console.log("[Context] Attempting authentication...");

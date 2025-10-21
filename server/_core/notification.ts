@@ -91,7 +91,7 @@ export async function notifyOwner(
   const endpoint = buildEndpointUrl(ENV.forgeApiUrl);
 
   try {
-    const response = await fetch(endpoint, {
+    const response = (await fetch(endpoint, {
       method: "POST",
       headers: {
         accept: "application/json",
@@ -100,7 +100,7 @@ export async function notifyOwner(
         "connect-protocol-version": "1",
       },
       body: JSON.stringify({ title, content }),
-    });
+    })) as any;
 
     if (!response.ok) {
       const detail = await response.text().catch(() => "");
