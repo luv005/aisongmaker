@@ -38,7 +38,7 @@ app.use(
 );
 
 // Serve index.html for all other routes (SPA)
-app.get("*", (req, res) => {
+app.get("*", (req: express.Request, res: express.Response) => {
   res.sendFile(path.join(publicPath, "index.html"));
 });
 
