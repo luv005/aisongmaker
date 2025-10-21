@@ -198,13 +198,23 @@ export async function generateMusic(
     }
 
     const data = await response.json();
-    console.log("[MiniMax] API response:", JSON.stringify(data).substring(0, 200));
+    console.log("[MiniMax] API response:", JSON.stringify(data, null, 2));
 
     // Check for API errors (status_code 0 means success)
     if (data.base_resp && data.base_resp.status_code !== 0) {
+      console.error("[MiniMax] API error response:", data.base_resp);
       return {
         success: false,
         error: data.base_resp.status_msg || "API error",
+      };
+    }
+
+    // Check for error field in response
+    if (data.error) {
+      console.error("[MiniMax] Error in response:", data.error);
+      return {
+        success: false,
+        error: typeof data.error === 'string' ? data.error : JSON.stringify(data.error),
       };
     }
 

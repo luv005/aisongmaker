@@ -95,6 +95,9 @@ export const appRouter = router({
         // Start music generation in background
         (async () => {
           try {
+            console.log(`[Music Generation] Starting generation for track ${trackId}`);
+            console.log(`[Music Generation] Input:`, JSON.stringify(input, null, 2));
+            
             // Call MiniMax API to generate music
             const result = await generateMusic({
               prompt: input.prompt,
@@ -103,42 +106,54 @@ export const appRouter = router({
               instrumental: input.instrumental,
             });
 
+            console.log(`[Music Generation] API result for ${trackId}:`, JSON.stringify(result, null, 2));
+
             if (!result.success) {
+              console.error(`[Music Generation] Generation failed for ${trackId}:`, result.error);
               throw new Error(result.error || "Failed to start generation");
             }
 
             // Check if audio is returned directly
             if (result.audioUrl) {
               // Audio returned immediately
+              console.log(`[Music Generation] Audio URL received for ${trackId}:`, result.audioUrl);
               await updateMusicTrack(trackId, {
                 audioUrl: result.audioUrl,
                 status: "completed",
               });
+              console.log(`[Music Generation] Track ${trackId} marked as completed`);
             } else if (result.taskId) {
               // Async generation - need to poll
+              console.log(`[Music Generation] Task ID received for ${trackId}:`, result.taskId);
               await updateMusicTrack(trackId, {
                 taskId: result.taskId,
                 status: "processing",
               });
 
               // Poll for completion
+              console.log(`[Music Generation] Starting polling for ${trackId}`);
               const taskResult = await pollTaskCompletion(result.taskId);
+              console.log(`[Music Generation] Polling result for ${trackId}:`, JSON.stringify(taskResult, null, 2));
 
               if (taskResult.success && taskResult.audioUrl) {
+                console.log(`[Music Generation] Audio URL from polling for ${trackId}:`, taskResult.audioUrl);
                 await updateMusicTrack(trackId, {
                   audioUrl: taskResult.audioUrl,
                   status: "completed",
                 });
+                console.log(`[Music Generation] Track ${trackId} marked as completed after polling`);
               } else {
+                console.error(`[Music Generation] Polling failed for ${trackId}:`, taskResult.error);
                 await updateMusicTrack(trackId, {
                   status: "failed",
                 });
               }
             } else {
+              console.error(`[Music Generation] No audio or task ID in response for ${trackId}`);
               throw new Error("No audio or task ID in response");
             }
           } catch (error) {
-            console.error("[Music Generation] Error:", error);
+            console.error(`[Music Generation] Error for ${trackId}:`, error);
             await updateMusicTrack(trackId, {
               status: "failed",
             });
