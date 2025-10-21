@@ -3,11 +3,6 @@
   "installCommand": "pnpm install",
   "framework": null,
   "outputDirectory": "dist/public",
-  "functions": {
-    "api/index.ts": {
-      "includeFiles": "server/**"
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",

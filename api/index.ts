@@ -1,10 +1,10 @@
 import express from "express";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerOAuthRoutes } from "../server/_core/oauth";
-import { appRouter } from "../server/routers";
-import { createContext } from "../server/_core/context";
+import { registerOAuthRoutes } from "./server/_core/oauth.js";
+import { appRouter } from "./server/routers.js";
+import { createContext } from "./server/_core/context.js";
 import { webcrypto } from "node:crypto";
-import { ensureGeneratedSubdir } from "../server/_core/paths";
+import { ensureGeneratedSubdir } from "./server/_core/paths.js";
 import path from "path";
 
 if (typeof globalThis.crypto === "undefined") {

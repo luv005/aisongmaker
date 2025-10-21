@@ -1,3 +1,8 @@
 node_modules
 generated
 .env
+
+# API directory copies
+api/server/
+api/drizzle/
+api/shared/
