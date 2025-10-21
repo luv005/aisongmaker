@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1760780527405,
+      "tag": "0000_rapid_wasp",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1760780559261,
+      "tag": "0001_warm_outlaw_kid",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1760787292647,
+      "tag": "0002_modern_lockjaw",
+      "breakpoints": true
+    }
+  ]
+}

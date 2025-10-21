@@ -1,0 +1,15 @@
+diff --git a/node_modules/vite/dist/node/chunks/dep-Chhhsdoe.js b/node_modules/vite/dist/node/chunks/dep-Chhhsdoe.js
+index 2053f74..1d4d78a 100644
+--- a/node_modules/vite/dist/node/chunks/dep-Chhhsdoe.js
++++ b/node_modules/vite/dist/node/chunks/dep-Chhhsdoe.js
+@@
+-function getHash(text, length = 8) {
+-	const h$2 = crypto.hash("sha256", text, "hex").substring(0, length);
++function getHash(text, length = 8) {
++	const digest = typeof crypto.hash === "function"
++		? crypto.hash("sha256", text, "hex")
++		: crypto.createHash("sha256").update(text).digest("hex");
++	const h$2 = digest.substring(0, length);
+ 	if (length <= 64) return h$2;
+ 	return h$2.padEnd(length, "_");
+ }
