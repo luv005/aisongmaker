@@ -25,8 +25,8 @@
  * });
  * ```
  */
-import { ENV } from "./env";
-import { isForgeEnabled } from "./forge";
+import { ENV } from "./env.js";
+import { isForgeEnabled } from "./forge.js";
 
 export type TranscribeOptions = {
   audioUrl: string; // URL to the audio file (e.g., S3 URL)

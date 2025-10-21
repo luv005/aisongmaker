@@ -1,6 +1,6 @@
 import Replicate from "replicate";
-import { ENV } from "./env";
-import { assertForgeEnabled } from "./forge";
+import { ENV } from "./env.js";
+import { assertForgeEnabled } from "./forge.js";
 
 export type Role = "system" | "user" | "assistant" | "tool" | "function";
 

@@ -1,10 +1,10 @@
-import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS } from "../../shared/const.js";
 import { OAuth2Client } from "google-auth-library";
 import type { Express, Request, Response } from "express";
-import * as db from "../db";
-import { getSessionCookieOptions } from "./cookies";
-import { ENV } from "./env";
-import { sdk } from "./sdk";
+import * as db from "../db.js";
+import { getSessionCookieOptions } from "./cookies.js";
+import { ENV } from "./env.js";
+import { sdk } from "./sdk.js";
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
@@ -25,16 +25,14 @@ const decodeState = (state: string | undefined): string | null => {
 };
 
 const determineRedirectUri = (req: Request): string => {
-  const forwardedProto = req.headers["x-forwarded-proto"];
-  const proto =
-    typeof forwardedProto === "string"
-      ? forwardedProto.split(",")[0]
-      : req.protocol;
-  const forwardedHost = req.headers["x-forwarded-host"];
-  const host =
-    typeof forwardedHost === "string"
-      ? forwardedHost.split(",")[0]
-      : req.get("host") ?? "localhost:3000";
+  const forwardedProtoHeader = req.header("x-forwarded-proto");
+  const proto = forwardedProtoHeader
+    ? forwardedProtoHeader.split(",")[0]
+    : req.protocol;
+  const forwardedHostHeader = req.header("x-forwarded-host");
+  const host = forwardedHostHeader
+    ? forwardedHostHeader.split(",")[0]
+    : req.get("host") ?? "localhost:3000";
   return `${proto}://${host}/api/oauth/callback`;
 };
 

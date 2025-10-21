@@ -4,8 +4,8 @@
  *     query: { gl: "US", hl: "en", q: "manus" },
  *   })
  */
-import { ENV } from "./env";
-import { assertForgeEnabled } from "./forge";
+import { ENV } from "./env.js";
+import { assertForgeEnabled } from "./forge.js";
 
 export type DataApiCallOptions = {
   query?: Record<string, unknown>;

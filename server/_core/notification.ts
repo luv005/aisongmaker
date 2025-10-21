@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { ENV } from "./env";
-import { isForgeEnabled } from "./forge";
+import { ENV } from "./env.js";
+import { isForgeEnabled } from "./forge.js";
 
 export type NotificationPayload = {
   title: string;

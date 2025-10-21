@@ -1,12 +1,12 @@
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME } from "../shared/const.js";
 import { z } from "zod";
-import { getSessionCookieOptions } from "./_core/cookies";
-import { systemRouter } from "./_core/systemRouter";
-import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { getSessionCookieOptions } from "./_core/cookies.js";
+import { systemRouter } from "./_core/systemRouter.js";
+import { protectedProcedure, publicProcedure, router } from "./_core/trpc.js";
 import { nanoid } from "nanoid";
-import { convertVoice, getTrendingVoices, getVoicesByCategory, searchVoices, VOICE_MODELS } from "./rvcApi";
-import { createVoiceCover, getUserVoiceCovers, updateVoiceCover } from "./db";
-import { ENV } from "./_core/env";
+import { convertVoice, getTrendingVoices, getVoicesByCategory, searchVoices, VOICE_MODELS } from "./rvcApi.js";
+import { createVoiceCover, getUserVoiceCovers, updateVoiceCover } from "./db.js";
+import { ENV } from "./_core/env.js";
 
 const MAX_LYRIC_DURATION_MINUTES = 4;
 const ESTIMATED_WORDS_PER_MINUTE = 120;
@@ -75,8 +75,8 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ ctx, input }) => {
-        const { createMusicTrack, updateMusicTrack } = await import("./db");
-        const { generateMusic, pollTaskCompletion } = await import("./minimaxApi");
+        const { createMusicTrack, updateMusicTrack } = await import("./db.js");
+        const { generateMusic, pollTaskCompletion } = await import("./minimaxApi.js");
         
         const trackId = `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         
@@ -164,14 +164,14 @@ export const appRouter = router({
       }),
 
     getHistory: protectedProcedure.query(async ({ ctx }) => {
-      const { getUserMusicTracks } = await import("./db");
+      const { getUserMusicTracks } = await import("./db.js");
       return getUserMusicTracks(ctx.user.id);
     }),
 
     getById: protectedProcedure
       .input(z.object({ id: z.string() }))
       .query(async ({ ctx, input }) => {
-        const { getMusicTrackById } = await import("./db");
+        const { getMusicTrackById } = await import("./db.js");
         const track = await getMusicTrackById(input.id);
         
         // Only allow users to view their own tracks
@@ -199,7 +199,7 @@ export const appRouter = router({
           throw new Error("Lyrics generation is not configured.");
         }
 
-        const { invokeLLM } = await import("./_core/llm");
+        const { invokeLLM } = await import("./_core/llm.js");
 
         const prompt = `You are a professional songwriter. Generate creative and engaging song lyrics in the ${input.style} style.${
           input.title ? ` The song title is "${input.title}".` : ""

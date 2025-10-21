@@ -6,8 +6,8 @@
 
 import { promises as fs } from "fs";
 import path from "path";
-import { ENV } from "./_core/env";
-import { ensureGeneratedSubdir, getGeneratedPublicPath } from "./_core/paths.ts";
+import { ENV } from "./_core/env.js";
+import { ensureGeneratedSubdir, getGeneratedPublicPath } from "./_core/paths.js";
 import { gunzipSync, inflateSync } from "node:zlib";
 
 const MINIMAX_API_BASE = "https://api.minimax.io/v1/music_generation";
@@ -231,7 +231,7 @@ export async function generateMusic(
         throw new Error("Received empty audio payload from MiniMax");
       }
 
-      const storage = await import("./storage");
+      const storage = await import("./storage.js");
       if (storage.isStorageConfigured()) {
         const timestamp = Date.now();
         const { url: audioUrl } = await storage.storagePut(

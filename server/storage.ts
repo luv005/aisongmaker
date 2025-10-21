@@ -1,6 +1,6 @@
 import { PutObjectCommand, GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { ENV } from "./_core/env";
+import { ENV } from "./_core/env.js";
 
 let s3Client: S3Client | null = null;
 
@@ -31,7 +31,7 @@ const ensureConfig = () => {
   }
 };
 
-const ensureClient = () => {
+const ensureClient = (): S3Client => {
   if (s3Client) return s3Client;
   ensureConfig();
   const credentials =

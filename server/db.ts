@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { createPool, type PoolOptions } from "mysql2";
-import { InsertUser, users } from "../drizzle/schema";
-import { ENV } from "./_core/env";
+import { InsertUser, users } from "../drizzle/schema.js";
+import { ENV } from "./_core/env.js";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let _connectionAttempted = false;
@@ -184,7 +184,7 @@ export async function getUser(id: string) {
 }
 
 // Music track queries
-import { InsertMusicTrack, musicTracks } from "../drizzle/schema";
+import { InsertMusicTrack, musicTracks } from "../drizzle/schema.js";
 import { desc } from "drizzle-orm";
 
 export async function createMusicTrack(track: InsertMusicTrack) {
@@ -231,7 +231,7 @@ export async function updateMusicTrack(id: string, updates: Partial<InsertMusicT
 
 
 // Voice cover queries
-import { InsertVoiceCover, voiceCovers } from "../drizzle/schema";
+import { InsertVoiceCover, voiceCovers } from "../drizzle/schema.js";
 
 export async function createVoiceCover(cover: InsertVoiceCover) {
   const db = await getDb();
