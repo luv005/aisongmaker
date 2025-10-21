@@ -8,9 +8,6 @@
       "source": "/(.*)",
       "destination": "/api"
     }
-  ],
-  "typescript": {
-    "ignoreBuildErrors": true
-  }
+  ]
 }
 
