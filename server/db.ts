@@ -5,7 +5,6 @@ import { InsertUser, users } from "../drizzle/schema.js";
 import { ENV } from "./_core/env.js";
 
 let _db: ReturnType<typeof drizzle> | null = null;
-let _connectionAttempted = false;
 let _connectionPromise: Promise<ReturnType<typeof drizzle> | null> | null = null;
 
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1"]);
@@ -58,40 +57,32 @@ function createPoolConfig(url: string): PoolOptions {
 }
 
 // Initialize database connection in background (non-blocking)
-function initializeDb(): Promise<ReturnType<typeof drizzle> | null> {
+async function initializeDb(): Promise<ReturnType<typeof drizzle> | null> {
+  if (_db) return _db;
   if (_connectionPromise) return _connectionPromise;
-  
-  if (_connectionAttempted) {
-    return Promise.resolve(null);
-  }
-  
+
   if (!ENV.databaseUrl) {
     console.warn("[Database] DATABASE_URL not configured");
-    _connectionAttempted = true;
-    return Promise.resolve(null);
+    return null;
   }
-  
+
   _connectionPromise = (async () => {
+    console.log("[Database] Attempting to connect...");
     try {
-      _connectionAttempted = true;
-      console.log("[Database] Attempting to connect...");
-      
-      // Create connection pool with timeout
       const pool = createPool(createPoolConfig(ENV.databaseUrl));
-      
-      // Test the connection with a simple query (with timeout)
+
       await Promise.race([
         new Promise((resolve, reject) => {
-          pool.query('SELECT 1', (err) => {
+          pool.query("SELECT 1", err => {
             if (err) reject(err);
             else resolve(true);
           });
         }),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Connection timeout')), 5000)
-        )
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Connection timeout")), 5000)
+        ),
       ]);
-      
+
       _db = drizzle(pool);
       console.log("[Database] Connected successfully");
       return _db;
@@ -99,9 +90,11 @@ function initializeDb(): Promise<ReturnType<typeof drizzle> | null> {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
       return null;
+    } finally {
+      _connectionPromise = null;
     }
   })();
-  
+
   return _connectionPromise;
 }
 

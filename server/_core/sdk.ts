@@ -160,15 +160,31 @@ class SDKServer {
     const user = await db.getUser(sessionUserId);
 
     if (!user) {
-      throw ForbiddenError("User not found");
+      console.warn("[Auth] Using session payload because user record is unavailable");
+      return {
+        id: sessionUserId,
+        name: session.name ?? null,
+        email: null,
+        loginMethod: "oauth",
+        role: "user",
+        createdAt: new Date(),
+        lastSignedIn: signedInAt,
+      } as User;
     }
 
-    await db.upsertUser({
-      id: user.id,
-      lastSignedIn: signedInAt,
-    });
+    try {
+      await db.upsertUser({
+        id: user.id,
+        lastSignedIn: signedInAt,
+      });
+    } catch (error) {
+      console.warn("[Auth] Failed to update lastSignedIn:", error);
+    }
 
-    return user;
+    return {
+      ...user,
+      lastSignedIn: signedInAt,
+    };
   }
 }
 
