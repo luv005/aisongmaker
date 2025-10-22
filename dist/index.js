@@ -1875,6 +1875,27 @@ function isYouTubeUrl(url) {
 }
 
 // server/routers.ts
+function getReplicateModelName(voiceId) {
+  const mapping = {
+    "squidward": "Squidward",
+    "mrkrabs": "MrKrabs",
+    "plankton": "Plankton",
+    "drake": "Drake",
+    "vader": "Vader",
+    "trump": "Trump",
+    "donald-trump": "Trump",
+    "biden": "Biden",
+    "joe-biden": "Biden",
+    "obama": "Obama",
+    "barack-obama": "Obama",
+    "guitar": "Guitar",
+    "violin": "Voilin",
+    // Note: Replicate has a typo
+    "voilin": "Voilin"
+    // Alternative spelling
+  };
+  return mapping[voiceId.toLowerCase()] || voiceId;
+}
 var MAX_LYRIC_DURATION_MINUTES = 4;
 var ESTIMATED_WORDS_PER_MINUTE = 120;
 var MAX_LYRIC_WORDS = MAX_LYRIC_DURATION_MINUTES * ESTIMATED_WORDS_PER_MINUTE;
@@ -2159,7 +2180,7 @@ ${lyrics}`
       });
       const result = await convertVoice({
         songInput: processedAudioUrl,
-        rvcModel: voiceModel.id,
+        rvcModel: getReplicateModelName(voiceModel.id),
         pitchChange: input.pitchChange
       });
       await updateVoiceCover(coverId, {

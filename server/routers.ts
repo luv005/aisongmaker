@@ -4,6 +4,27 @@ import { getSessionCookieOptions } from "./_core/cookies.js";
 import { systemRouter } from "./_core/systemRouter.js";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc.js";
 import { nanoid } from "nanoid";
+
+// Map database voice IDs to Replicate RVC model names
+function getReplicateModelName(voiceId: string): string {
+  const mapping: Record<string, string> = {
+    "squidward": "Squidward",
+    "mrkrabs": "MrKrabs",
+    "plankton": "Plankton",
+    "drake": "Drake",
+    "vader": "Vader",
+    "trump": "Trump",
+    "donald-trump": "Trump",
+    "biden": "Biden",
+    "joe-biden": "Biden",
+    "obama": "Obama",
+    "barack-obama": "Obama",
+    "guitar": "Guitar",
+    "violin": "Voilin", // Note: Replicate has a typo
+    "voilin": "Voilin", // Alternative spelling
+  };
+  return mapping[voiceId.toLowerCase()] || voiceId;
+}
 import { convertVoice, getTrendingVoices, getVoicesByCategory, searchVoices, VOICE_MODELS } from "./rvcApi.js";
 import { createVoiceCover, getUserVoiceCovers, updateVoiceCover, getDb } from "./db.js";
 import { voiceModels } from "../drizzle/schema.js";
@@ -391,7 +412,7 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
         // Start voice conversion
         const result = await convertVoice({
           songInput: processedAudioUrl,
-          rvcModel: voiceModel.id,
+          rvcModel: getReplicateModelName(voiceModel.id),
           pitchChange: input.pitchChange,
         });
 
