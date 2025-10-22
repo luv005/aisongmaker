@@ -1702,7 +1702,7 @@ var replicate = new Replicate({
 async function convertVoice(params) {
   try {
     const output = await replicate.run(
-      "zsxkib/realistic-voice-cloning:0a9c7c5527c0bcd1f4f2f36e5e5a6c5e5b3c4d3e5f6a7b8c9d0e1f2a3b4c5d6e7",
+      "zsxkib/realistic-voice-cloning:0a9c7c558af4c0f20667c1bd1260ce32a2879944a0b9e44e1398660c077b1550",
       {
         input: {
           song_input: params.songInput,
