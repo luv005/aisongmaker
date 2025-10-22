@@ -17,7 +17,12 @@ export default function VoiceCoverCreate() {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const demoAudioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+  const { data: voice } = trpc.voiceCover.getVoiceById.useQuery({
+    id: voiceId || "",
+  });
+
+  // Use the voice's demo audio URL from database, fallback to SoundHelix if not available
+  const demoAudioUrl = voice?.demoAudioUrl || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
 
   const handlePlayDemo = () => {
     if (isPlaying) {
@@ -32,10 +37,6 @@ export default function VoiceCoverCreate() {
       setIsPlaying(true);
     }
   };
-
-  const { data: voice } = trpc.voiceCover.getVoiceById.useQuery({
-    id: voiceId || "",
-  });
 
   const createCover = trpc.voiceCover.create.useMutation({
     onSuccess: (data) => {

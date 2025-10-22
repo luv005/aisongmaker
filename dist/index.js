@@ -1909,7 +1909,8 @@ async function getVoicesByCategory(category) {
       category: m.category,
       avatar: m.avatarUrl || "",
       uses: m.uses || 0,
-      likes: m.likes || 0
+      likes: m.likes || 0,
+      demoAudioUrl: m.demoAudioUrl
     }));
   }
   const models = await db.select().from(voiceModels).where(eq2(voiceModels.category, category)).orderBy(desc2(voiceModels.uses));
@@ -1919,7 +1920,8 @@ async function getVoicesByCategory(category) {
     category: m.category,
     avatar: m.avatarUrl || "",
     uses: m.uses || 0,
-    likes: m.likes || 0
+    likes: m.likes || 0,
+    demoAudioUrl: m.demoAudioUrl
   }));
 }
 async function getTrendingVoices(limit = 5) {
@@ -1932,7 +1934,8 @@ async function getTrendingVoices(limit = 5) {
     category: m.category,
     avatar: m.avatarUrl || "",
     uses: m.uses || 0,
-    likes: m.likes || 0
+    likes: m.likes || 0,
+    demoAudioUrl: m.demoAudioUrl
   }));
 }
 async function searchVoices(query) {
@@ -1945,13 +1948,16 @@ async function searchVoices(query) {
     category: m.category,
     avatar: m.avatarUrl || "",
     uses: m.uses || 0,
-    likes: m.likes || 0
+    likes: m.likes || 0,
+    demoAudioUrl: m.demoAudioUrl
   }));
 }
 
 // server/routers.ts
 init_db();
+init_schema();
 init_env();
+import { eq as eq3 } from "drizzle-orm";
 var MAX_LYRIC_DURATION_MINUTES = 4;
 var ESTIMATED_WORDS_PER_MINUTE = 120;
 var MAX_LYRIC_WORDS = MAX_LYRIC_DURATION_MINUTES * ESTIMATED_WORDS_PER_MINUTE;
@@ -2195,8 +2201,11 @@ ${lyrics}`
       return searchVoices(input.query);
     }),
     // Get voice model by ID
-    getVoiceById: publicProcedure.input(z2.object({ id: z2.string() })).query(({ input }) => {
-      return VOICE_MODELS.find((v) => v.id === input.id);
+    getVoiceById: publicProcedure.input(z2.object({ id: z2.string() })).query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) return null;
+      const result = await db.select().from(voiceModels).where(eq3(voiceModels.id, input.id));
+      return result[0] || null;
     }),
     // Create voice cover
     create: protectedProcedure.input(
