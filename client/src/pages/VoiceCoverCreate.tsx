@@ -50,6 +50,8 @@ export default function VoiceCoverCreate() {
     },
   });
 
+  const uploadAudio = trpc.upload.uploadAudio.useMutation();
+
   const handleCreate = async () => {
     if (!youtubeUrl && !audioFile) {
       toast.error("Please provide a YouTube link or upload an audio file");
@@ -63,17 +65,45 @@ export default function VoiceCoverCreate() {
 
     setIsCreating(true);
 
-    // For now, we'll use a placeholder URL
-    // In production, you'd upload the file to S3 first or process the YouTube URL
-    const audioUrl = audioFile
-      ? URL.createObjectURL(audioFile)
-      : youtubeUrl;
+    try {
+      let audioUrl: string;
 
-    createCover.mutate({
-      voiceModelId: voice.id,
-      audioUrl,
-      pitchChange: "no-change",
-    });
+      if (audioFile) {
+        // Upload file to S3
+        toast.info("Uploading audio file...");
+        const reader = new FileReader();
+        const fileData = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => {
+            const base64 = (reader.result as string).split(",")[1];
+            resolve(base64);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(audioFile);
+        });
+
+        const uploadResult = await uploadAudio.mutateAsync({
+          fileName: audioFile.name,
+          fileData,
+          contentType: audioFile.type,
+        });
+
+        audioUrl = uploadResult.url;
+        toast.success("File uploaded successfully!");
+      } else {
+        // Use YouTube URL directly
+        audioUrl = youtubeUrl;
+      }
+
+      // Create voice cover
+      createCover.mutate({
+        voiceModelId: voice.id,
+        audioUrl,
+        pitchChange: "no-change",
+      });
+    } catch (error) {
+      toast.error(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+      setIsCreating(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
