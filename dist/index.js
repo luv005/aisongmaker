@@ -350,56 +350,6 @@ var init_forge = __esm({
   }
 });
 
-// server/_core/paths.ts
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "node:url";
-function ensureDir(dirPath) {
-  tryEnsureDir(dirPath);
-}
-function ensureGeneratedSubdir(...segments) {
-  const target = path.resolve(GENERATED_BASE, ...segments);
-  ensureDir(target);
-  return target;
-}
-function getGeneratedPublicPath(...segments) {
-  const cleaned = segments.filter(Boolean).join("/");
-  return `/generated/${cleaned}`.replace(/\/+/g, "/");
-}
-var currentDir, projectRoot, tryEnsureDir, resolveGeneratedBase, GENERATED_BASE;
-var init_paths = __esm({
-  "server/_core/paths.ts"() {
-    "use strict";
-    currentDir = path.dirname(fileURLToPath(import.meta.url));
-    projectRoot = path.resolve(currentDir, "..", "..");
-    tryEnsureDir = (dirPath) => {
-      if (!dirPath) return null;
-      try {
-        if (!fs.existsSync(dirPath)) {
-          fs.mkdirSync(dirPath, { recursive: true });
-        }
-        fs.accessSync(dirPath, fs.constants.W_OK);
-        return dirPath;
-      } catch (error) {
-        console.warn("[Paths] Unable to ensure directory:", dirPath, error);
-        return null;
-      }
-    };
-    resolveGeneratedBase = () => {
-      const envRoot = tryEnsureDir(process.env.GENERATED_ROOT ?? void 0);
-      if (envRoot) return envRoot;
-      const localRoot = tryEnsureDir(path.resolve(projectRoot, "generated"));
-      if (localRoot) return localRoot;
-      const tmpRoot = tryEnsureDir(
-        path.resolve(process.env.TMPDIR || "/tmp", "aisongmaker", "generated")
-      );
-      if (tmpRoot) return tmpRoot;
-      return path.resolve(projectRoot, "generated");
-    };
-    GENERATED_BASE = resolveGeneratedBase();
-  }
-});
-
 // server/storage.ts
 var storage_exports = {};
 __export(storage_exports, {
@@ -481,6 +431,56 @@ var init_storage = __esm({
       return s3Client;
     };
     isStorageConfigured = () => Boolean(ENV.s3Bucket && ENV.awsRegion);
+  }
+});
+
+// server/_core/paths.ts
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "node:url";
+function ensureDir(dirPath) {
+  tryEnsureDir(dirPath);
+}
+function ensureGeneratedSubdir(...segments) {
+  const target = path.resolve(GENERATED_BASE, ...segments);
+  ensureDir(target);
+  return target;
+}
+function getGeneratedPublicPath(...segments) {
+  const cleaned = segments.filter(Boolean).join("/");
+  return `/generated/${cleaned}`.replace(/\/+/g, "/");
+}
+var currentDir, projectRoot, tryEnsureDir, resolveGeneratedBase, GENERATED_BASE;
+var init_paths = __esm({
+  "server/_core/paths.ts"() {
+    "use strict";
+    currentDir = path.dirname(fileURLToPath(import.meta.url));
+    projectRoot = path.resolve(currentDir, "..", "..");
+    tryEnsureDir = (dirPath) => {
+      if (!dirPath) return null;
+      try {
+        if (!fs.existsSync(dirPath)) {
+          fs.mkdirSync(dirPath, { recursive: true });
+        }
+        fs.accessSync(dirPath, fs.constants.W_OK);
+        return dirPath;
+      } catch (error) {
+        console.warn("[Paths] Unable to ensure directory:", dirPath, error);
+        return null;
+      }
+    };
+    resolveGeneratedBase = () => {
+      const envRoot = tryEnsureDir(process.env.GENERATED_ROOT ?? void 0);
+      if (envRoot) return envRoot;
+      const localRoot = tryEnsureDir(path.resolve(projectRoot, "generated"));
+      if (localRoot) return localRoot;
+      const tmpRoot = tryEnsureDir(
+        path.resolve(process.env.TMPDIR || "/tmp", "aisongmaker", "generated")
+      );
+      if (tmpRoot) return tmpRoot;
+      return path.resolve(projectRoot, "generated");
+    };
+    GENERATED_BASE = resolveGeneratedBase();
   }
 });
 
@@ -1537,7 +1537,7 @@ function registerOAuthRoutes(app) {
 }
 
 // server/routers.ts
-import { z as z2 } from "zod";
+import { z as z3 } from "zod";
 
 // server/_core/systemRouter.ts
 import { z } from "zod";
@@ -1689,7 +1689,7 @@ var systemRouter = router({
 });
 
 // server/routers.ts
-import { nanoid } from "nanoid";
+import { nanoid as nanoid3 } from "nanoid";
 
 // server/rvcApi.ts
 init_db();
@@ -1729,175 +1729,6 @@ async function convertVoice(params) {
     };
   }
 }
-var VOICE_MODELS = [
-  // Popular Female Artists
-  {
-    id: "taylor-swift",
-    name: "Taylor Swift",
-    category: "Music",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=taylor&backgroundColor=ffc9c9",
-    uses: 52300,
-    likes: 1124
-  },
-  {
-    id: "ariana-grande",
-    name: "Ariana Grande",
-    category: "Music",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=ariana&backgroundColor=f4c2c2",
-    uses: 48100,
-    likes: 987
-  },
-  {
-    id: "billie-eilish",
-    name: "Billie Eilish",
-    category: "Music",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=billie&backgroundColor=b8e0d2",
-    uses: 45200,
-    likes: 892
-  },
-  {
-    id: "lady-gaga",
-    name: "Lady Gaga",
-    category: "Music",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=gaga&backgroundColor=ffd5dc",
-    uses: 41300,
-    likes: 834
-  },
-  {
-    id: "adele",
-    name: "Adele",
-    category: "Music",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=adele&backgroundColor=eac4d5",
-    uses: 38900,
-    likes: 756
-  },
-  // Popular Male Artists
-  {
-    id: "the-weeknd",
-    name: "The Weeknd",
-    category: "Music",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=weeknd&backgroundColor=b6e3f4",
-    uses: 39100,
-    likes: 812
-  },
-  {
-    id: "michael-jackson",
-    name: "Michael Jackson",
-    category: "Music",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=mj&backgroundColor=ffdfbf",
-    uses: 36700,
-    likes: 723
-  },
-  {
-    id: "ed-sheeran",
-    name: "Ed Sheeran",
-    category: "Music",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=ed&backgroundColor=ffd4a3",
-    uses: 32400,
-    likes: 621
-  },
-  {
-    id: "bruno-mars",
-    name: "Bruno Mars",
-    category: "Music",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=bruno&backgroundColor=c0aede",
-    uses: 28900,
-    likes: 543
-  },
-  {
-    id: "justin-bieber",
-    name: "Justin Bieber",
-    category: "Music",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=justin&backgroundColor=d1d4f9",
-    uses: 27500,
-    likes: 512
-  },
-  // Rappers
-  {
-    id: "drake",
-    name: "Drake",
-    category: "Rapper",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=drake&backgroundColor=ffd5dc",
-    uses: 35200,
-    likes: 689
-  },
-  {
-    id: "eminem",
-    name: "Eminem",
-    category: "Rapper",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=eminem&backgroundColor=e0e0e0",
-    uses: 31800,
-    likes: 634
-  },
-  {
-    id: "kanye-west",
-    name: "Kanye West",
-    category: "Rapper",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=kanye&backgroundColor=c7ceea",
-    uses: 28100,
-    likes: 567
-  },
-  // K-Pop
-  {
-    id: "jungkook",
-    name: "Jungkook (BTS)",
-    category: "Music",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=jungkook&backgroundColor=f4e4ba",
-    uses: 42700,
-    likes: 891
-  },
-  {
-    id: "lisa",
-    name: "Lisa (BLACKPINK)",
-    category: "Music",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=lisa&backgroundColor=ffd3e1",
-    uses: 38400,
-    likes: 767
-  },
-  // Anime Characters
-  {
-    id: "hatsune-miku",
-    name: "Hatsune Miku",
-    category: "Anime",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=miku&backgroundColor=b8e0d2",
-    uses: 29200,
-    likes: 626
-  },
-  {
-    id: "gojo",
-    name: "Satoru Gojo",
-    category: "Anime",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=gojo&backgroundColor=d4f1f4",
-    uses: 22600,
-    likes: 455
-  },
-  // Cartoon Characters
-  {
-    id: "spongebob",
-    name: "SpongeBob SquarePants",
-    category: "Cartoon",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=spongebob&backgroundColor=fff3b0",
-    uses: 31300,
-    likes: 608
-  },
-  {
-    id: "peter-griffin",
-    name: "Peter Griffin",
-    category: "Cartoon",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=peter&backgroundColor=e8f4f8",
-    uses: 25800,
-    likes: 512
-  },
-  // Other Popular
-  {
-    id: "minecraft-villager",
-    name: "Minecraft Villager",
-    category: "Game",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=villager&backgroundColor=a8dadc",
-    uses: 62100,
-    likes: 823
-  }
-];
 async function getVoicesByCategory(category) {
   const db = await getDb();
   if (!db) return [];
@@ -1958,6 +1789,92 @@ init_db();
 init_schema();
 init_env();
 import { eq as eq3 } from "drizzle-orm";
+
+// server/uploadRouter.ts
+init_storage();
+import { z as z2 } from "zod";
+import { nanoid } from "nanoid";
+var uploadRouter = router({
+  // Upload audio file for voice cover
+  uploadAudio: protectedProcedure.input(
+    z2.object({
+      fileName: z2.string(),
+      fileData: z2.string(),
+      // base64 encoded
+      contentType: z2.string()
+    })
+  ).mutation(async ({ input }) => {
+    const buffer = Buffer.from(input.fileData, "base64");
+    const ext = input.fileName.split(".").pop() || "mp3";
+    const key = `voice-covers/input-${nanoid()}.${ext}`;
+    const result = await storagePut(key, buffer, input.contentType);
+    return {
+      url: result.url,
+      key: result.key
+    };
+  })
+});
+
+// server/youtubeDownloader.ts
+init_storage();
+import { exec } from "child_process";
+import { promisify } from "util";
+import { unlink } from "fs/promises";
+import { nanoid as nanoid2 } from "nanoid";
+var execAsync = promisify(exec);
+async function downloadYouTubeAudio(youtubeUrl) {
+  const tempId = nanoid2();
+  const tempFile = `/tmp/youtube-${tempId}.mp3`;
+  const strategies = [
+    // Strategy 1: Use android client
+    `yt-dlp --extractor-args "youtube:player_client=android" -x --audio-format mp3 --audio-quality 0 -o "${tempFile}" "${youtubeUrl}"`,
+    // Strategy 2: Use ios client
+    `yt-dlp --extractor-args "youtube:player_client=ios" -x --audio-format mp3 --audio-quality 0 -o "${tempFile}" "${youtubeUrl}"`,
+    // Strategy 3: Use web client with different user agent
+    `yt-dlp --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" -x --audio-format mp3 --audio-quality 0 -o "${tempFile}" "${youtubeUrl}"`,
+    // Strategy 4: Basic download
+    `yt-dlp -x --audio-format mp3 --audio-quality 0 -o "${tempFile}" "${youtubeUrl}"`
+  ];
+  let lastError = null;
+  for (let i = 0; i < strategies.length; i++) {
+    try {
+      console.log(`[YouTube] Trying strategy ${i + 1}/${strategies.length}`);
+      await execAsync(strategies[i], { timeout: 12e4 });
+      const fs4 = await import("fs/promises");
+      await fs4.access(tempFile);
+      console.log(`[YouTube] Strategy ${i + 1} succeeded`);
+      break;
+    } catch (error) {
+      console.log(`[YouTube] Strategy ${i + 1} failed:`, error instanceof Error ? error.message : String(error));
+      lastError = error instanceof Error ? error : new Error(String(error));
+    }
+  }
+  try {
+    const fs4 = await import("fs/promises");
+    await fs4.access(tempFile);
+  } catch {
+    throw new Error(`Failed to download YouTube audio after trying all strategies: ${lastError?.message || "Unknown error"}`);
+  }
+  try {
+    const fs4 = await import("fs/promises");
+    const audioBuffer = await fs4.readFile(tempFile);
+    const s3Key = `voice-covers/input-${tempId}.mp3`;
+    const result = await storagePut(s3Key, audioBuffer, "audio/mpeg");
+    await unlink(tempFile);
+    return result.url;
+  } catch (error) {
+    try {
+      await unlink(tempFile);
+    } catch {
+    }
+    throw new Error(`Failed to upload YouTube audio to S3: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+function isYouTubeUrl(url) {
+  return /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/.test(url);
+}
+
+// server/routers.ts
 var MAX_LYRIC_DURATION_MINUTES = 4;
 var ESTIMATED_WORDS_PER_MINUTE = 120;
 var MAX_LYRIC_WORDS = MAX_LYRIC_DURATION_MINUTES * ESTIMATED_WORDS_PER_MINUTE;
@@ -1986,6 +1903,7 @@ var trimLyricsToWordLimit = (text2) => {
 };
 var appRouter = router({
   system: systemRouter,
+  upload: uploadRouter,
   auth: router({
     me: publicProcedure.query((opts) => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -1999,13 +1917,13 @@ var appRouter = router({
   }),
   music: router({
     generate: protectedProcedure.input(
-      z2.object({
-        prompt: z2.string(),
-        title: z2.string(),
-        style: z2.string(),
-        model: z2.enum(["V5", "V4_5PLUS", "V4_5", "V4", "V3_5"]),
-        customMode: z2.boolean(),
-        instrumental: z2.boolean()
+      z3.object({
+        prompt: z3.string(),
+        title: z3.string(),
+        style: z3.string(),
+        model: z3.enum(["V5", "V4_5PLUS", "V4_5", "V4", "V3_5"]),
+        customMode: z3.boolean(),
+        instrumental: z3.boolean()
       })
     ).mutation(async ({ ctx, input }) => {
       const { createMusicTrack: createMusicTrack2, updateMusicTrack: updateMusicTrack2 } = await Promise.resolve().then(() => (init_db(), db_exports));
@@ -2089,7 +2007,7 @@ var appRouter = router({
       const { getUserMusicTracks: getUserMusicTracks2 } = await Promise.resolve().then(() => (init_db(), db_exports));
       return getUserMusicTracks2(ctx.user.id);
     }),
-    getById: protectedProcedure.input(z2.object({ id: z2.string() })).query(async ({ ctx, input }) => {
+    getById: protectedProcedure.input(z3.object({ id: z3.string() })).query(async ({ ctx, input }) => {
       const { getMusicTrackById: getMusicTrackById2 } = await Promise.resolve().then(() => (init_db(), db_exports));
       const track = await getMusicTrackById2(input.id);
       if (track && track.userId !== ctx.user.id) {
@@ -2098,10 +2016,10 @@ var appRouter = router({
       return track;
     }),
     generateLyrics: protectedProcedure.input(
-      z2.object({
-        style: z2.string(),
-        title: z2.string().optional(),
-        mood: z2.string().optional()
+      z3.object({
+        style: z3.string(),
+        title: z3.string().optional(),
+        mood: z3.string().optional()
       })
     ).mutation(async ({ input }) => {
       const canGenerateLyrics = ENV.forgeFeaturesEnabled && !!ENV.forgeApiKey || !!ENV.openaiApiKey || !!process.env.REPLICATE_API_TOKEN;
@@ -2189,7 +2107,7 @@ ${lyrics}`
   // Voice cover router
   voiceCover: router({
     // Get all voice models
-    getVoices: publicProcedure.input(z2.object({ category: z2.string().optional() }).optional()).query(({ input }) => {
+    getVoices: publicProcedure.input(z3.object({ category: z3.string().optional() }).optional()).query(({ input }) => {
       return getVoicesByCategory(input?.category);
     }),
     // Get trending voices
@@ -2197,40 +2115,50 @@ ${lyrics}`
       return getTrendingVoices(5);
     }),
     // Search voices
-    search: publicProcedure.input(z2.object({ query: z2.string() })).query(({ input }) => {
+    search: publicProcedure.input(z3.object({ query: z3.string() })).query(({ input }) => {
       return searchVoices(input.query);
     }),
     // Get voice model by ID
-    getVoiceById: publicProcedure.input(z2.object({ id: z2.string() })).query(async ({ input }) => {
+    getVoiceById: publicProcedure.input(z3.object({ id: z3.string() })).query(async ({ input }) => {
       const db = await getDb();
       if (!db) return null;
       const result = await db.select().from(voiceModels).where(eq3(voiceModels.id, input.id));
       return result[0] || null;
     }),
     // Create voice cover
-    create: protectedProcedure.input(
-      z2.object({
-        voiceModelId: z2.string(),
-        audioUrl: z2.string(),
-        pitchChange: z2.enum(["no-change", "male-to-female", "female-to-male"]).optional()
+    create: publicProcedure.input(
+      z3.object({
+        voiceModelId: z3.string(),
+        audioUrl: z3.string(),
+        pitchChange: z3.enum(["no-change", "male-to-female", "female-to-male"]).optional()
       })
     ).mutation(async ({ ctx, input }) => {
-      const voiceModel = VOICE_MODELS.find((v) => v.id === input.voiceModelId);
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      const voiceModelResult = await db.select().from(voiceModels).where(eq3(voiceModels.id, input.voiceModelId));
+      const voiceModel = voiceModelResult[0];
       if (!voiceModel) {
         throw new Error("Voice model not found");
       }
-      const coverId = nanoid();
+      const coverId = nanoid3();
+      let processedAudioUrl = input.audioUrl;
+      if (isYouTubeUrl(input.audioUrl)) {
+        console.log(`[Voice Cover] Downloading YouTube audio: ${input.audioUrl}`);
+        processedAudioUrl = await downloadYouTubeAudio(input.audioUrl);
+        console.log(`[Voice Cover] YouTube audio downloaded to: ${processedAudioUrl}`);
+      }
+      const userId = ctx.user?.id || "dev-user";
       await createVoiceCover({
         id: coverId,
-        userId: ctx.user.id,
+        userId,
         voiceModelId: input.voiceModelId,
         voiceModelName: voiceModel.name,
-        originalAudioUrl: input.audioUrl,
+        originalAudioUrl: processedAudioUrl,
         status: "processing",
         pitchChange: input.pitchChange || "no-change"
       });
       const result = await convertVoice({
-        songInput: input.audioUrl,
+        songInput: processedAudioUrl,
         rvcModel: voiceModel.id,
         pitchChange: input.pitchChange
       });
@@ -2280,7 +2208,7 @@ async function createContext(opts) {
 // server/_core/vite.ts
 import express from "express";
 import fs3 from "fs";
-import { nanoid as nanoid2 } from "nanoid";
+import { nanoid as nanoid4 } from "nanoid";
 import path4 from "path";
 import cryptoNative from "node:crypto";
 import { fileURLToPath as fileURLToPath3 } from "node:url";
@@ -2343,7 +2271,7 @@ async function setupVite(app, server) {
         let template = await fs3.promises.readFile(clientTemplate, "utf-8");
         template = template.replace(
           `src="/src/main.tsx"`,
-          `src="/src/main.tsx?v=${nanoid2()}"`
+          `src="/src/main.tsx?v=${nanoid4()}"`
         );
         const page = await vite.transformIndexHtml(url, template);
         res.status(200).set({ "Content-Type": "text/html" }).end(page);

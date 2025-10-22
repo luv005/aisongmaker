@@ -9,6 +9,8 @@ import { createVoiceCover, getUserVoiceCovers, updateVoiceCover, getDb } from ".
 import { voiceModels } from "../drizzle/schema.js";
 import { eq } from "drizzle-orm";
 import { ENV } from "./_core/env.js";
+import { uploadRouter } from "./uploadRouter.js";
+import { downloadYouTubeAudio, isYouTubeUrl } from "./youtubeDownloader.js";
 
 const MAX_LYRIC_DURATION_MINUTES = 4;
 const ESTIMATED_WORDS_PER_MINUTE = 120;
@@ -52,6 +54,7 @@ const trimLyricsToWordLimit = (text: string) => {
 
 export const appRouter = router({
   system: systemRouter,
+  upload: uploadRouter,
 
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
@@ -350,12 +353,26 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
         })
       )
       .mutation(async ({ ctx, input }) => {
-        const voiceModel = VOICE_MODELS.find((v) => v.id === input.voiceModelId);
+        // Query database for voice model
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+        
+        const voiceModelResult = await db.select().from(voiceModels).where(eq(voiceModels.id, input.voiceModelId));
+        const voiceModel = voiceModelResult[0];
+        
         if (!voiceModel) {
           throw new Error("Voice model not found");
         }
 
         const coverId = nanoid();
+        
+        // Handle YouTube URL if provided
+        let processedAudioUrl = input.audioUrl;
+        if (isYouTubeUrl(input.audioUrl)) {
+          console.log(`[Voice Cover] Downloading YouTube audio: ${input.audioUrl}`);
+          processedAudioUrl = await downloadYouTubeAudio(input.audioUrl);
+          console.log(`[Voice Cover] YouTube audio downloaded to: ${processedAudioUrl}`);
+        }
         
         // Create database record
         await createVoiceCover({
@@ -363,14 +380,14 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
           userId: ctx.user.id,
           voiceModelId: input.voiceModelId,
           voiceModelName: voiceModel.name,
-          originalAudioUrl: input.audioUrl,
+          originalAudioUrl: processedAudioUrl,
           status: "processing",
           pitchChange: input.pitchChange || "no-change",
         });
 
         // Start voice conversion
         const result = await convertVoice({
-          songInput: input.audioUrl,
+          songInput: processedAudioUrl,
           rvcModel: voiceModel.id,
           pitchChange: input.pitchChange,
         });

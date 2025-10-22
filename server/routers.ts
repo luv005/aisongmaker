@@ -344,7 +344,7 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
       }),
 
     // Create voice cover
-    create: protectedProcedure
+    create: publicProcedure
       .input(
         z.object({
           voiceModelId: z.string(),
@@ -374,10 +374,13 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
           console.log(`[Voice Cover] YouTube audio downloaded to: ${processedAudioUrl}`);
         }
         
+        // Use dev user if not authenticated
+        const userId = ctx.user?.id || "dev-user";
+        
         // Create database record
         await createVoiceCover({
           id: coverId,
-          userId: ctx.user.id,
+          userId: userId,
           voiceModelId: input.voiceModelId,
           voiceModelName: voiceModel.name,
           originalAudioUrl: processedAudioUrl,

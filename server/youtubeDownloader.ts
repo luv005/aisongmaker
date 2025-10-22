@@ -10,10 +10,46 @@ export async function downloadYouTubeAudio(youtubeUrl: string): Promise<string> 
   const tempId = nanoid();
   const tempFile = `/tmp/youtube-${tempId}.mp3`;
   
+  // Try multiple strategies
+  const strategies = [
+    // Strategy 1: Use android client
+    `yt-dlp --extractor-args "youtube:player_client=android" -x --audio-format mp3 --audio-quality 0 -o "${tempFile}" "${youtubeUrl}"`,
+    // Strategy 2: Use ios client
+    `yt-dlp --extractor-args "youtube:player_client=ios" -x --audio-format mp3 --audio-quality 0 -o "${tempFile}" "${youtubeUrl}"`,
+    // Strategy 3: Use web client with different user agent
+    `yt-dlp --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" -x --audio-format mp3 --audio-quality 0 -o "${tempFile}" "${youtubeUrl}"`,
+    // Strategy 4: Basic download
+    `yt-dlp -x --audio-format mp3 --audio-quality 0 -o "${tempFile}" "${youtubeUrl}"`,
+  ];
+  
+  let lastError: Error | null = null;
+  
+  for (let i = 0; i < strategies.length; i++) {
+    try {
+      console.log(`[YouTube] Trying strategy ${i + 1}/${strategies.length}`);
+      await execAsync(strategies[i], { timeout: 120000 }); // 2 minute timeout per strategy
+      
+      // Check if file exists
+      const fs = await import("fs/promises");
+      await fs.access(tempFile);
+      console.log(`[YouTube] Strategy ${i + 1} succeeded`);
+      break; // Success!
+    } catch (error) {
+      console.log(`[YouTube] Strategy ${i + 1} failed:`, error instanceof Error ? error.message : String(error));
+      lastError = error instanceof Error ? error : new Error(String(error));
+      // Continue to next strategy
+    }
+  }
+  
   try {
-    // Use yt-dlp to download audio
-    const command = `yt-dlp -x --audio-format mp3 --audio-quality 0 -o "${tempFile}" "${youtubeUrl}"`;
-    await execAsync(command, { timeout: 300000 }); // 5 minute timeout
+    // Check if download succeeded
+    const fs = await import("fs/promises");
+    await fs.access(tempFile);
+  } catch {
+    throw new Error(`Failed to download YouTube audio after trying all strategies: ${lastError?.message || "Unknown error"}`);
+  }
+  
+  try {
     
     // Read the file
     const fs = await import("fs/promises");
@@ -33,7 +69,7 @@ export async function downloadYouTubeAudio(youtubeUrl: string): Promise<string> 
       await unlink(tempFile);
     } catch {}
     
-    throw new Error(`Failed to download YouTube audio: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`Failed to upload YouTube audio to S3: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
