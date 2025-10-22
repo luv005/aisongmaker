@@ -132,20 +132,16 @@ function createPoolConfig(url) {
   }
   return config;
 }
-function initializeDb() {
+async function initializeDb() {
+  if (_db) return _db;
   if (_connectionPromise) return _connectionPromise;
-  if (_connectionAttempted) {
-    return Promise.resolve(null);
-  }
   if (!ENV.databaseUrl) {
     console.warn("[Database] DATABASE_URL not configured");
-    _connectionAttempted = true;
-    return Promise.resolve(null);
+    return null;
   }
   _connectionPromise = (async () => {
+    console.log("[Database] Attempting to connect...");
     try {
-      _connectionAttempted = true;
-      console.log("[Database] Attempting to connect...");
       const pool = createPool(createPoolConfig(ENV.databaseUrl));
       await Promise.race([
         new Promise((resolve, reject) => {
@@ -165,6 +161,8 @@ function initializeDb() {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
       return null;
+    } finally {
+      _connectionPromise = null;
     }
   })();
   return _connectionPromise;
@@ -301,7 +299,7 @@ async function getUserVoiceCovers(userId) {
     return [];
   }
 }
-var _db, _connectionAttempted, _connectionPromise, LOCAL_HOSTS;
+var _db, _connectionPromise, LOCAL_HOSTS;
 var init_db = __esm({
   "server/db.ts"() {
     "use strict";
@@ -310,7 +308,6 @@ var init_db = __esm({
     init_schema();
     init_schema();
     _db = null;
-    _connectionAttempted = false;
     _connectionPromise = null;
     LOCAL_HOSTS = /* @__PURE__ */ new Set(["localhost", "127.0.0.1"]);
     if (ENV.databaseUrl) {
@@ -1374,13 +1371,29 @@ var SDKServer = class {
     const signedInAt = /* @__PURE__ */ new Date();
     const user = await getUser(sessionUserId);
     if (!user) {
-      throw ForbiddenError("User not found");
+      console.warn("[Auth] Using session payload because user record is unavailable");
+      return {
+        id: sessionUserId,
+        name: session.name ?? null,
+        email: null,
+        loginMethod: "oauth",
+        role: "user",
+        createdAt: /* @__PURE__ */ new Date(),
+        lastSignedIn: signedInAt
+      };
     }
-    await upsertUser({
-      id: user.id,
+    try {
+      await upsertUser({
+        id: user.id,
+        lastSignedIn: signedInAt
+      });
+    } catch (error) {
+      console.warn("[Auth] Failed to update lastSignedIn:", error);
+    }
+    return {
+      ...user,
       lastSignedIn: signedInAt
-    });
-    return user;
+    };
   }
 };
 var sdk = new SDKServer();
@@ -2296,6 +2309,7 @@ function serveStatic(app) {
 
 // server/_core/index.ts
 init_paths();
+init_env();
 import { webcrypto } from "node:crypto";
 if (typeof globalThis.crypto === "undefined") {
   globalThis.crypto = webcrypto;
@@ -2318,6 +2332,8 @@ async function findAvailablePort(startPort = 3e3) {
   throw new Error(`No available port found starting from ${startPort}`);
 }
 async function startServer() {
+  console.log("[Debug] ENABLE_OAUTH:", process.env.ENABLE_OAUTH);
+  console.log("[Debug] ENV.oauthEnabled:", ENV.oauthEnabled);
   const app = express2();
   const server = createServer(app);
   const generatedDir = ensureGeneratedSubdir();
