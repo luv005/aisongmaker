@@ -2016,11 +2016,18 @@ var appRouter = router({
           }
         } catch (error) {
           console.error(`[Music Generation] Error for ${trackId}:`, error);
-          await updateMusicTrack2(trackId, {
-            status: "failed"
-          });
+          console.error(`[Music Generation] Error stack:`, error instanceof Error ? error.stack : "No stack trace");
+          try {
+            await updateMusicTrack2(trackId, {
+              status: "failed"
+            });
+          } catch (updateError) {
+            console.error(`[Music Generation] Failed to update track status:`, updateError);
+          }
         }
-      })();
+      })().catch((err) => {
+        console.error(`[Music Generation] Unhandled error in background process for ${trackId}:`, err);
+      });
       return { success: true, trackId };
     }),
     getHistory: protectedProcedure.query(async ({ ctx }) => {
