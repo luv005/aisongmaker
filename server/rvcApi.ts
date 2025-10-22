@@ -14,6 +14,7 @@ export interface VoiceModel {
   avatar: string;
   uses: number;
   likes: number;
+  demoAudioUrl?: string | null;
 }
 
 export interface RVCConversionParams {
@@ -266,6 +267,7 @@ export async function getVoicesByCategory(category?: string): Promise<VoiceModel
       avatar: m.avatarUrl || "",
       uses: m.uses || 0,
       likes: m.likes || 0,
+      demoAudioUrl: m.demoAudioUrl,
     }));
   }
   const models = await db.select().from(voiceModels).where(eq(voiceModels.category, category)).orderBy(desc(voiceModels.uses));
@@ -276,6 +278,7 @@ export async function getVoicesByCategory(category?: string): Promise<VoiceModel
     avatar: m.avatarUrl || "",
     uses: m.uses || 0,
     likes: m.likes || 0,
+    demoAudioUrl: m.demoAudioUrl,
   }));
 }
 
@@ -294,6 +297,7 @@ export async function getTrendingVoices(limit: number = 5): Promise<VoiceModel[]
     avatar: m.avatarUrl || "",
     uses: m.uses || 0,
     likes: m.likes || 0,
+    demoAudioUrl: m.demoAudioUrl,
   }));
 }
 
@@ -312,6 +316,7 @@ export async function searchVoices(query: string): Promise<VoiceModel[]> {
     avatar: m.avatarUrl || "",
     uses: m.uses || 0,
     likes: m.likes || 0,
+    demoAudioUrl: m.demoAudioUrl,
   }));
 }
 
