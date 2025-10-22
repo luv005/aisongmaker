@@ -42,7 +42,7 @@ export async function convertVoice(
 ): Promise<RVCConversionResult> {
   try {
     const output = (await replicate.run(
-      "zsxkib/realistic-voice-cloning:a0076ea190fb8c0f8d2c9a22d9e18b5f8d9f8c0f" as any,
+      "zsxkib/realistic-voice-cloning:0a9c7c5527c0bcd1f4f2f36e5e5a6c5e5b3c4d3e5f6a7b8c9d0e1f2a3b4c5d6e7" as any,
       {
         input: {
           song_input: params.songInput,
