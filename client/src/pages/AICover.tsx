@@ -3,17 +3,17 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Search, Play, Heart, Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Play, Pause, Heart, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLocation } from "wouter";
 
-const CATEGORIES = ["All", "Cartoon", "Rapper", "Celebrity", "Movie", "Game", "Anime"];
+const CATEGORIES = ["All", "Cartoon", "Rapper", "Celebrity", "Movie", "Game", "Anime", "Music"];
 
 export default function AICover() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  // Note: Voice preview functionality removed as we don't have demo audio samples
-  // Users can hear the voices after generating a cover
+  const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const { data: trendingVoices } = trpc.voiceCover.getTrending.useQuery();
   const { data: allVoices } = trpc.voiceCover.getVoices.useQuery({
@@ -25,6 +25,90 @@ export default function AICover() {
         v.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : allVoices;
+
+  const handlePlayPause = (voiceId: string, demoAudioUrl: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
+
+    if (playingVoiceId === voiceId) {
+      // Pause current audio
+      audioRef.current?.pause();
+      setPlayingVoiceId(null);
+    } else {
+      // Stop previous audio if any
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+
+      // Play new audio
+      const audio = new Audio(demoAudioUrl);
+      audioRef.current = audio;
+      audio.play();
+      setPlayingVoiceId(voiceId);
+
+      // Reset when audio ends
+      audio.onended = () => {
+        setPlayingVoiceId(null);
+      };
+    }
+  };
+
+  const renderVoiceCard = (voice: any, index?: number) => {
+    const hasDemo = !!voice.demoAudioUrl;
+    const isPlaying = playingVoiceId === voice.id;
+
+    return (
+      <Card
+        key={voice.id}
+        className="group cursor-pointer overflow-hidden border-border/40 bg-card/50 hover:bg-card hover:border-green-500/50 transition-all"
+        onClick={() => setLocation(`/ai-cover/${voice.id}`)}
+      >
+        <div className="relative aspect-square bg-gradient-to-br from-purple-500/20 to-pink-500/20">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-6xl">🎤</div>
+          </div>
+          {index !== undefined && (
+            <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+              #{index + 1}
+            </div>
+          )}
+          {/* Play button overlay - only show if demo audio is available */}
+          {hasDemo && (
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
+              <Button
+                size="icon"
+                className="opacity-0 group-hover:opacity-100 transition-opacity bg-green-500 hover:bg-green-600 text-white rounded-full h-12 w-12"
+                onClick={(e) => handlePlayPause(voice.id, voice.demoAudioUrl, e)}
+              >
+                {isPlaying ? (
+                  <Pause className="h-6 w-6" />
+                ) : (
+                  <Play className="h-6 w-6 ml-0.5" />
+                )}
+              </Button>
+            </div>
+          )}
+        </div>
+        <div className="p-4">
+          <h3 className="font-semibold text-foreground mb-1 truncate">
+            {voice.name}
+          </h3>
+          <p className="text-xs text-muted-foreground mb-2">
+            {voice.category}
+          </p>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              <span>{(voice.uses / 1000).toFixed(1)}K</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Heart className="h-3 w-3" />
+              <span>{voice.likes}</span>
+            </div>
+          </div>
+        </div>
+      </Card>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -70,41 +154,7 @@ export default function AICover() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {trendingVoices.map((voice) => (
-                <Card
-                  key={voice.id}
-                  className="group cursor-pointer overflow-hidden border-border/40 bg-card/50 hover:bg-card hover:border-green-500/50 transition-all"
-                  onClick={() => setLocation(`/ai-cover/${voice.id}`)}
-                >
-                  <div className="relative aspect-square bg-gradient-to-br from-purple-500/20 to-pink-500/20">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-6xl">🎤</div>
-                    </div>
-                    <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
-                      #{trendingVoices.indexOf(voice) + 1}
-                    </div>
-                    {/* Play button removed - no demo audio available */}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-foreground mb-1 truncate">
-                      {voice.name}
-                    </h3>
-                    <p className="text-xs text-muted-foreground mb-2">
-                      {voice.category}
-                    </p>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Users className="h-3 w-3" />
-                        <span>{(voice.uses / 1000).toFixed(1)}K</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Heart className="h-3 w-3" />
-                        <span>{voice.likes}</span>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              ))}
+              {trendingVoices.map((voice, index) => renderVoiceCard(voice, index))}
             </div>
           </div>
         )}
@@ -148,39 +198,7 @@ export default function AICover() {
 
           {/* Voice Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {filteredVoices?.map((voice) => (
-              <Card
-                key={voice.id}
-                className="group cursor-pointer overflow-hidden border-border/40 bg-card/50 hover:bg-card hover:border-green-500/50 transition-all"
-                onClick={() => setLocation(`/ai-cover/${voice.id}`)}
-              >
-                <div className="relative aspect-square bg-gradient-to-br from-blue-500/20 to-purple-500/20">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-6xl">🎤</div>
-                  </div>
-                  {/* Hover overlay - no play button as demo audio not available */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all"></div>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-foreground mb-1 truncate">
-                    {voice.name}
-                  </h3>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    {voice.category}
-                  </p>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      <span>{(voice.uses / 1000).toFixed(1)}K</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Heart className="h-3 w-3" />
-                      <span>{voice.likes}</span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            ))}
+            {filteredVoices?.map((voice) => renderVoiceCard(voice))}
           </div>
 
           {filteredVoices && filteredVoices.length === 0 && (
