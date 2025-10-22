@@ -2334,6 +2334,14 @@ async function findAvailablePort(startPort = 3e3) {
 async function startServer() {
   console.log("[Debug] ENABLE_OAUTH:", process.env.ENABLE_OAUTH);
   console.log("[Debug] ENV.oauthEnabled:", ENV.oauthEnabled);
+  console.log(
+    "[Debug] DATABASE_URL present:",
+    typeof process.env.DATABASE_URL === "string" && process.env.DATABASE_URL.trim().length > 0
+  );
+  console.log(
+    "[Debug] ENV.databaseUrl length:",
+    ENV.databaseUrl ? ENV.databaseUrl.length : 0
+  );
   const app = express2();
   const server = createServer(app);
   const generatedDir = ensureGeneratedSubdir();
