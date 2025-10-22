@@ -5,7 +5,9 @@ import { systemRouter } from "./_core/systemRouter.js";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc.js";
 import { nanoid } from "nanoid";
 import { convertVoice, getTrendingVoices, getVoicesByCategory, searchVoices, VOICE_MODELS } from "./rvcApi.js";
-import { createVoiceCover, getUserVoiceCovers, updateVoiceCover } from "./db.js";
+import { createVoiceCover, getUserVoiceCovers, updateVoiceCover, getDb } from "./db.js";
+import { voiceModels } from "../drizzle/schema.js";
+import { eq } from "drizzle-orm";
 import { ENV } from "./_core/env.js";
 
 const MAX_LYRIC_DURATION_MINUTES = 4;
@@ -330,8 +332,12 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
     // Get voice model by ID
     getVoiceById: publicProcedure
       .input(z.object({ id: z.string() }))
-      .query(({ input }) => {
-        return VOICE_MODELS.find((v) => v.id === input.id);
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return null;
+        
+        const result = await db.select().from(voiceModels).where(eq(voiceModels.id, input.id));
+        return result[0] || null;
       }),
 
     // Create voice cover
