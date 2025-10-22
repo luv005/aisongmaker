@@ -1,4 +1,7 @@
 import Replicate from "replicate";
+import { getDb } from "./db.js";
+import { voiceModels } from "../drizzle/schema.js";
+import { eq, like, desc } from "drizzle-orm";
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
@@ -250,27 +253,65 @@ export const VOICE_MODELS: VoiceModel[] = [
 /**
  * Get voice models by category
  */
-export function getVoicesByCategory(category?: string): VoiceModel[] {
+export async function getVoicesByCategory(category?: string): Promise<VoiceModel[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
   if (!category || category === "All") {
-    return VOICE_MODELS;
+    const models = await db.select().from(voiceModels).orderBy(desc(voiceModels.uses));
+    return models.map(m => ({
+      id: m.id,
+      name: m.name,
+      category: m.category,
+      avatar: m.avatarUrl || "",
+      uses: m.uses || 0,
+      likes: m.likes || 0,
+    }));
   }
-  return VOICE_MODELS.filter((v) => v.category === category);
+  const models = await db.select().from(voiceModels).where(eq(voiceModels.category, category)).orderBy(desc(voiceModels.uses));
+  return models.map(m => ({
+    id: m.id,
+    name: m.name,
+    category: m.category,
+    avatar: m.avatarUrl || "",
+    uses: m.uses || 0,
+    likes: m.likes || 0,
+  }));
 }
 
 /**
  * Get trending voices (top by uses)
  */
-export function getTrendingVoices(limit: number = 5): VoiceModel[] {
-  return [...VOICE_MODELS].sort((a, b) => b.uses - a.uses).slice(0, limit);
+export async function getTrendingVoices(limit: number = 5): Promise<VoiceModel[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const models = await db.select().from(voiceModels).where(eq(voiceModels.isTrending, 1)).orderBy(desc(voiceModels.uses)).limit(limit);
+  return models.map(m => ({
+    id: m.id,
+    name: m.name,
+    category: m.category,
+    avatar: m.avatarUrl || "",
+    uses: m.uses || 0,
+    likes: m.likes || 0,
+  }));
 }
 
 /**
  * Search voices by name
  */
-export function searchVoices(query: string): VoiceModel[] {
-  const lowerQuery = query.toLowerCase();
-  return VOICE_MODELS.filter((v) =>
-    v.name.toLowerCase().includes(lowerQuery)
-  );
+export async function searchVoices(query: string): Promise<VoiceModel[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const models = await db.select().from(voiceModels).where(like(voiceModels.name, `%${query}%`)).orderBy(desc(voiceModels.uses));
+  return models.map(m => ({
+    id: m.id,
+    name: m.name,
+    category: m.category,
+    avatar: m.avatarUrl || "",
+    uses: m.uses || 0,
+    likes: m.likes || 0,
+  }));
 }
 

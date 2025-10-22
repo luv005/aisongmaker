@@ -12,38 +12,8 @@ export default function AICover() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Demo audio URLs for each voice (in production, these would come from the database)
-  const demoAudioUrls: Record<string, string> = {
-    "squidward": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    "spongebob": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-    "drake": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-    "trump": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-    "darth-vader": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
-  };
-
-  const handlePlayPreview = (e: React.MouseEvent, voiceId: string) => {
-    e.stopPropagation();
-    
-    if (playingVoiceId === voiceId) {
-      // Stop playing
-      audioRef.current?.pause();
-      setPlayingVoiceId(null);
-    } else {
-      // Start playing
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      
-      const audio = new Audio(demoAudioUrls[voiceId] || demoAudioUrls["squidward"]);
-      audio.play();
-      audio.onended = () => setPlayingVoiceId(null);
-      audioRef.current = audio;
-      setPlayingVoiceId(voiceId);
-    }
-  };
+  // Note: Voice preview functionality removed as we don't have demo audio samples
+  // Users can hear the voices after generating a cover
 
   const { data: trendingVoices } = trpc.voiceCover.getTrending.useQuery();
   const { data: allVoices } = trpc.voiceCover.getVoices.useQuery({
@@ -113,24 +83,7 @@ export default function AICover() {
                     <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
                       #{trendingVoices.indexOf(voice) + 1}
                     </div>
-                    <button
-                      onClick={(e) => handlePlayPreview(e, voice.id)}
-                      className="absolute inset-0 bg-black/0 hover:bg-black/40 transition-all flex items-center justify-center"
-                    >
-                      <div className="bg-white/90 rounded-full p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {playingVoiceId === voice.id ? (
-                          <div className="h-6 w-6 flex items-center justify-center">
-                            <div className="flex gap-1">
-                              <div className="w-1 h-6 bg-green-500 animate-pulse"></div>
-                              <div className="w-1 h-6 bg-green-500 animate-pulse" style={{animationDelay: "0.2s"}}></div>
-                              <div className="w-1 h-6 bg-green-500 animate-pulse" style={{animationDelay: "0.4s"}}></div>
-                            </div>
-                          </div>
-                        ) : (
-                          <Play className="h-6 w-6 text-green-500" fill="currentColor" />
-                        )}
-                      </div>
-                    </button>
+                    {/* Play button removed - no demo audio available */}
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-foreground mb-1 truncate">
@@ -205,9 +158,8 @@ export default function AICover() {
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-6xl">🎤</div>
                   </div>
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
-                    <Play className="h-12 w-12 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
+                  {/* Hover overlay - no play button as demo audio not available */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all"></div>
                 </div>
                 <div className="p-4">
                   <h3 className="font-semibold text-foreground mb-1 truncate">

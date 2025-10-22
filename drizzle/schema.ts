@@ -55,3 +55,19 @@ export const voiceCovers = mysqlTable("voice_covers", {
 export type VoiceCover = typeof voiceCovers.$inferSelect;
 export type InsertVoiceCover = typeof voiceCovers.$inferInsert;
 
+// Voice models library table
+export const voiceModels = mysqlTable("voice_models", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  name: varchar("name", { length: 128 }).notNull(),
+  category: varchar("category", { length: 64 }).notNull(),
+  avatarUrl: text("avatarUrl"),
+  demoAudioUrl: text("demoAudioUrl"),
+  uses: int("uses").default(0),
+  likes: int("likes").default(0),
+  isTrending: int("isTrending").default(0),
+  createdAt: timestamp("createdAt").defaultNow(),
+});
+
+export type VoiceModel = typeof voiceModels.$inferSelect;
+export type InsertVoiceModel = typeof voiceModels.$inferInsert;
+

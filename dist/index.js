@@ -10,7 +10,7 @@ var __export = (target, all) => {
 
 // drizzle/schema.ts
 import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
-var users, musicTracks, voiceCovers;
+var users, musicTracks, voiceCovers, voiceModels;
 var init_schema = __esm({
   "drizzle/schema.ts"() {
     "use strict";
@@ -47,6 +47,17 @@ var init_schema = __esm({
       status: mysqlEnum("status", ["processing", "completed", "failed"]).default("processing").notNull(),
       pitchChange: varchar("pitchChange", { length: 32 }),
       duration: int("duration").default(0),
+      createdAt: timestamp("createdAt").defaultNow()
+    });
+    voiceModels = mysqlTable("voice_models", {
+      id: varchar("id", { length: 64 }).primaryKey(),
+      name: varchar("name", { length: 128 }).notNull(),
+      category: varchar("category", { length: 64 }).notNull(),
+      avatarUrl: text("avatarUrl"),
+      demoAudioUrl: text("demoAudioUrl"),
+      uses: int("uses").default(0),
+      likes: int("likes").default(0),
+      isTrending: int("isTrending").default(0),
       createdAt: timestamp("createdAt").defaultNow()
     });
   }
@@ -1681,7 +1692,10 @@ var systemRouter = router({
 import { nanoid } from "nanoid";
 
 // server/rvcApi.ts
+init_db();
+init_schema();
 import Replicate from "replicate";
+import { eq as eq2, like, desc as desc2 } from "drizzle-orm";
 var replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN
 });
@@ -1884,20 +1898,55 @@ var VOICE_MODELS = [
     likes: 823
   }
 ];
-function getVoicesByCategory(category) {
+async function getVoicesByCategory(category) {
+  const db = await getDb();
+  if (!db) return [];
   if (!category || category === "All") {
-    return VOICE_MODELS;
+    const models2 = await db.select().from(voiceModels).orderBy(desc2(voiceModels.uses));
+    return models2.map((m) => ({
+      id: m.id,
+      name: m.name,
+      category: m.category,
+      avatar: m.avatarUrl || "",
+      uses: m.uses || 0,
+      likes: m.likes || 0
+    }));
   }
-  return VOICE_MODELS.filter((v) => v.category === category);
+  const models = await db.select().from(voiceModels).where(eq2(voiceModels.category, category)).orderBy(desc2(voiceModels.uses));
+  return models.map((m) => ({
+    id: m.id,
+    name: m.name,
+    category: m.category,
+    avatar: m.avatarUrl || "",
+    uses: m.uses || 0,
+    likes: m.likes || 0
+  }));
 }
-function getTrendingVoices(limit = 5) {
-  return [...VOICE_MODELS].sort((a, b) => b.uses - a.uses).slice(0, limit);
+async function getTrendingVoices(limit = 5) {
+  const db = await getDb();
+  if (!db) return [];
+  const models = await db.select().from(voiceModels).where(eq2(voiceModels.isTrending, 1)).orderBy(desc2(voiceModels.uses)).limit(limit);
+  return models.map((m) => ({
+    id: m.id,
+    name: m.name,
+    category: m.category,
+    avatar: m.avatarUrl || "",
+    uses: m.uses || 0,
+    likes: m.likes || 0
+  }));
 }
-function searchVoices(query) {
-  const lowerQuery = query.toLowerCase();
-  return VOICE_MODELS.filter(
-    (v) => v.name.toLowerCase().includes(lowerQuery)
-  );
+async function searchVoices(query) {
+  const db = await getDb();
+  if (!db) return [];
+  const models = await db.select().from(voiceModels).where(like(voiceModels.name, `%${query}%`)).orderBy(desc2(voiceModels.uses));
+  return models.map((m) => ({
+    id: m.id,
+    name: m.name,
+    category: m.category,
+    avatar: m.avatarUrl || "",
+    uses: m.uses || 0,
+    likes: m.likes || 0
+  }));
 }
 
 // server/routers.ts
