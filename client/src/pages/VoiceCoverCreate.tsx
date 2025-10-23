@@ -1,25 +1,81 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Upload, Heart, Users, Share2, Youtube } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Upload, Heart, Users, Share2, Youtube, Loader2, Search, Download, ThumbsUp, Headphones, MoreVertical, Mic2 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 
 export default function VoiceCoverCreate() {
+  const { playTrack, currentTrack, isPlaying, togglePlayPause } = useAudioPlayer();
+
+  // Format duration from seconds to MM:SS
+  const formatDuration = (seconds: number | null | undefined): string => {
+    if (!seconds || seconds === 0) return "0:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleDownload = (audioUrl: string, fileName: string) => {
+    const proxyUrl = `/api/download?url=${encodeURIComponent(audioUrl)}&filename=${encodeURIComponent(fileName || 'ai-cover.mp3')}`;
+    const a = document.createElement('a');
+    a.href = proxyUrl;
+    a.download = fileName || 'ai-cover.mp3';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  const handlePlay = (cover: any) => {
+    if (currentTrack?.id === cover.id && isPlaying) {
+      togglePlayPause();
+    } else {
+      playTrack({
+        id: cover.id,
+        title: cover.songTitle || 'Untitled Cover',
+        artist: cover.voiceModelName,
+        audioUrl: cover.convertedAudioUrl,
+        duration: cover.duration,
+      });
+    }
+  };
+
   const { voiceId } = useParams();
   const [, setLocation] = useLocation();
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { isAuthenticated } = useAuth();
 
   const { data: voice } = trpc.voiceCover.getVoiceById.useQuery({
     id: voiceId || "",
   });
+
+  // Fetch user's voice covers with polling for processing covers
+  const { data: userCovers = [], isLoading: coversLoading } = trpc.voiceCover.getUserCovers.useQuery(
+    undefined,
+    {
+      refetchInterval: query => {
+        const covers = query.state.data;
+        if (!Array.isArray(covers)) return false;
+        return covers.some(
+          cover => cover.status === "processing"
+        )
+          ? 5000
+          : false;
+      },
+      refetchOnWindowFocus: false,
+    }
+  );
+
+  const utils = trpc.useUtils();
 
   // Use the voice's demo audio URL from database, fallback to SoundHelix if not available
   const demoAudioUrl = voice?.demoAudioUrl || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
@@ -38,14 +94,47 @@ export default function VoiceCoverCreate() {
     }
   };
 
+  const [coverId, setCoverId] = useState<string | null>(null);
+  const [pollingInterval, setPollingInterval] = useState<number | null>(null);
+
+  // Poll for cover status
+  const { data: coverStatus } = trpc.voiceCover.getById.useQuery(
+    { id: coverId || "" },
+    {
+      enabled: !!coverId,
+      refetchInterval: pollingInterval || false,
+    }
+  );
+
+  // Handle status updates
+  if (coverStatus && coverId) {
+    if (coverStatus.status === "completed" && pollingInterval) {
+      setPollingInterval(null);
+      setIsCreating(false);
+      toast.success("Voice cover created successfully!");
+      // Show audio player or download link
+      if (coverStatus.convertedAudioUrl) {
+        // Could play the audio or show download button
+        console.log("Cover ready:", coverStatus.convertedAudioUrl);
+      }
+    } else if (coverStatus.status === "failed" && pollingInterval) {
+      setPollingInterval(null);
+      setIsCreating(false);
+      toast.error("Failed to create voice cover. Please try again.");
+    }
+  }
+
   const createCover = trpc.voiceCover.create.useMutation({
     onSuccess: (data) => {
-      toast.success("Voice cover created successfully!");
-      setIsCreating(false);
-      // Could navigate to a results page or show the audio player
+      if (data.success && data.id) {
+        setCoverId(data.id);
+        setPollingInterval(2000); // Poll every 2 seconds
+        toast.success("AI Cover generation started! You can refresh or close this page.");
+        utils.voiceCover.getUserCovers.invalidate();
+      }
     },
     onError: (error) => {
-      toast.error(`Failed to create cover: ${error.message}`);
+      toast.error(`Failed to start generation: ${error.message}`);
       setIsCreating(false);
     },
   });
@@ -151,7 +240,7 @@ export default function VoiceCoverCreate() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <div className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container py-6">
@@ -165,7 +254,10 @@ export default function VoiceCoverCreate() {
         </div>
       </div>
 
-      <div className="container py-8 max-w-5xl">
+      <div className="flex-1 overflow-hidden flex">
+        {/* Left Panel - Voice Cover Creation */}
+        <div className="flex-1 overflow-y-auto p-6">
+        <div className="max-w-5xl mx-auto">
         <div className="grid md:grid-cols-[300px_1fr] gap-8">
           {/* Voice Profile */}
           <div>
@@ -329,6 +421,112 @@ export default function VoiceCoverCreate() {
               </p>
             </Card>
           </div>
+        </div>
+        </div>
+        </div>
+
+        {/* Right Panel - Voice Covers History */}
+        <div className="w-96 border-l border-border overflow-y-auto p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by song name, voice"
+                className="pl-10 bg-background"
+              />
+            </div>
+          </div>
+
+          {coversLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : userCovers.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <p className="text-sm">No AI covers created yet</p>
+              <p className="text-xs mt-1">Create your first cover!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {userCovers.map((cover: any) => (
+                <Card
+                  key={cover.id}
+                  className="overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all"
+                >
+                  <div className="flex gap-3 p-3">
+                    {/* Thumbnail with duration overlay */}
+                    <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        }}
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Mic2 className="h-8 w-8 text-white/80" />
+                      </div>
+                      {cover.status === "completed" && (
+                        <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs font-semibold px-2 py-1 rounded">
+                          {formatDuration(cover.duration)}
+                        </div>
+                      )}
+                      {cover.status === "processing" && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                          <Loader2 className="h-6 w-6 text-white animate-spin" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-between">
+                      <div>
+                        <h4 className="font-medium truncate text-sm mb-1">
+                          {cover.songTitle || "Untitled Cover"}
+                        </h4>
+                        <Badge variant="outline" className="text-xs">
+                          {cover.voiceModelName}
+                        </Badge>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Switch checked={false} className="scale-75" />
+                          <span className="text-xs text-muted-foreground">Publish</span>
+                        </div>
+
+                        {cover.status === "completed" && cover.convertedAudioUrl ? (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <button 
+                              onClick={() => handleDownload(cover.convertedAudioUrl, `${cover.songTitle || 'Untitled Cover'} (${cover.voiceModelName}).mp3`)}
+                              className="hover:text-foreground transition-colors"
+                            >
+                              <Download className="h-4 w-4" />
+                            </button>
+                            <button 
+                              onClick={() => handlePlay(cover)}
+                              className="flex items-center gap-1 hover:text-foreground transition-colors"
+                            >
+                              <Headphones className="h-4 w-4" />
+                              <span className="text-xs">0</span>
+                            </button>
+                            <button className="flex items-center gap-1 hover:text-foreground transition-colors">
+                              <ThumbsUp className="h-4 w-4" />
+                              <span className="text-xs">0</span>
+                            </button>
+                            <button className="hover:text-foreground transition-colors">
+                              <MoreVertical className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : cover.status === "failed" ? (
+                          <div className="text-xs text-destructive font-medium">Generation failed</div>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

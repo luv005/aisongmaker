@@ -147,6 +147,16 @@ export default function Home() {
     setMusicSettings(settings);
   };
 
+  const handleDownload = (audioUrl: string, fileName: string) => {
+    const proxyUrl = `/api/download?url=${encodeURIComponent(audioUrl)}&filename=${encodeURIComponent(fileName)}`;
+    const a = document.createElement('a');
+    a.href = proxyUrl;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   const getSettingsSummary = () => {
     const parts = [musicSettings.style, musicSettings.mood, musicSettings.scenario].filter(Boolean);
     if (parts.length === 0) return "Select music settings";
@@ -435,7 +445,13 @@ export default function Home() {
                             <source src={track.audioUrl} type="audio/mpeg" />
                           </audio>
                           <div className="flex items-center gap-2 text-muted-foreground">
-                            <button className="hover:text-foreground transition-colors">
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDownload(track.audioUrl!, `${track.title || 'Untitled'}.mp3`);
+                              }}
+                              className="hover:text-foreground transition-colors"
+                            >
                               <Download className="h-4 w-4" />
                             </button>
                             <button className="hover:text-foreground transition-colors">

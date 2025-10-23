@@ -168,9 +168,11 @@ export default function SongDetail() {
   const handleDownload = () => {
     if (!song?.audioUrl) return;
     
+    const fileName = `${song.title}.mp3`;
+    const proxyUrl = `/api/download?url=${encodeURIComponent(song.audioUrl)}&filename=${encodeURIComponent(fileName)}`;
     const link = document.createElement("a");
-    link.href = song.audioUrl;
-    link.download = `${song.title}.mp3`;
+    link.href = proxyUrl;
+    link.download = fileName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
