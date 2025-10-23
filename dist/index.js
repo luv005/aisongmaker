@@ -291,6 +291,8 @@ async function updateVoiceCover(id, updates) {
     return void 0;
   }
   try {
+    console.log(`[Database] updateVoiceCover called with id: ${id}, updates:`, JSON.stringify(updates));
+    console.log(`[Database] updates keys:`, Object.keys(updates));
     await db.update(voiceCovers).set(updates).where(eq(voiceCovers.id, id));
   } catch (error) {
     console.error("[Database] Failed to update voice cover:", error);
@@ -1701,7 +1703,12 @@ var replicate = new Replicate({
 });
 async function convertVoice(params) {
   try {
-    const output = await replicate.run(
+    console.log("[RVC] Starting Replicate API call with params:", {
+      rvcModel: params.rvcModel,
+      songInput: params.songInput,
+      pitchChange: params.pitchChange
+    });
+    const rawOutput = await replicate.run(
       "zsxkib/realistic-voice-cloning:0a9c7c558af4c0f20667c1bd1260ce32a2879944a0b9e44e1398660c077b1550",
       {
         input: {
@@ -1716,8 +1723,37 @@ async function convertVoice(params) {
         }
       }
     );
+    console.log("[RVC] Raw output from Replicate:", rawOutput);
+    console.log("[RVC] Raw output type:", typeof rawOutput);
+    console.log("[RVC] Raw output constructor:", rawOutput?.constructor?.name);
+    const output = rawOutput;
+    console.log("[RVC] Replicate output type:", typeof output);
+    console.log("[RVC] Replicate output:", JSON.stringify(output));
+    let audioUrl = "";
+    if (typeof output === "string") {
+      audioUrl = output;
+    } else if (Array.isArray(output) && output.length > 0) {
+      const first = output[0];
+      if (typeof first === "string") {
+        audioUrl = first;
+      } else if (first && typeof first === "object" && "url" in first && typeof first.url === "string") {
+        audioUrl = first.url;
+      }
+    } else if (output && typeof output === "object") {
+      const obj = output;
+      if ("url" in obj && typeof obj.url === "string") {
+        audioUrl = obj.url;
+      } else if (typeof obj.toString === "function" && obj.toString() !== "[object Object]") {
+        audioUrl = obj.toString();
+      }
+    }
+    console.log("[RVC] Extracted audio URL:", audioUrl);
+    if (!audioUrl || audioUrl === "" || audioUrl.startsWith("[Function")) {
+      console.error("[RVC] Failed to extract valid audio URL from output:", output);
+      throw new Error("Failed to extract audio URL from Replicate response");
+    }
     return {
-      audioUrl: output,
+      audioUrl,
       status: "completed"
     };
   } catch (error) {
@@ -2184,11 +2220,13 @@ ${lyrics}`
         pitchChange: input.pitchChange
       });
       try {
-        console.log(`[Voice Cover] Updating cover ${coverId} with status: ${result.status}`);
-        await updateVoiceCover(coverId, {
+        const updateData = {
           convertedAudioUrl: result.audioUrl,
           status: result.status
-        });
+        };
+        console.log(`[Voice Cover] Updating cover ${coverId} with data:`, JSON.stringify(updateData));
+        console.log(`[Voice Cover] result object:`, JSON.stringify(result));
+        await updateVoiceCover(coverId, updateData);
         console.log(`[Voice Cover] Successfully updated cover ${coverId}`);
       } catch (updateError) {
         console.error(`[Voice Cover] Failed to update cover ${coverId}:`, updateError);

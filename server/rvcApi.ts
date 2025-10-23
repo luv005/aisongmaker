@@ -41,7 +41,13 @@ export async function convertVoice(
   params: RVCConversionParams
 ): Promise<RVCConversionResult> {
   try {
-    const output = (await replicate.run(
+    console.log("[RVC] Starting Replicate API call with params:", {
+      rvcModel: params.rvcModel,
+      songInput: params.songInput,
+      pitchChange: params.pitchChange,
+    });
+    
+    const rawOutput = await replicate.run(
       "zsxkib/realistic-voice-cloning:0a9c7c558af4c0f20667c1bd1260ce32a2879944a0b9e44e1398660c077b1550" as any,
       {
         input: {
@@ -55,10 +61,50 @@ export async function convertVoice(
           output_format: params.outputFormat || "mp3",
         },
       }
-    )) as unknown as string;
+    );
+    
+    console.log("[RVC] Raw output from Replicate:", rawOutput);
+    console.log("[RVC] Raw output type:", typeof rawOutput);
+    console.log("[RVC] Raw output constructor:", rawOutput?.constructor?.name);
+    
+    const output = rawOutput as unknown as string;
 
+    console.log("[RVC] Replicate output type:", typeof output);
+    console.log("[RVC] Replicate output:", JSON.stringify(output));
+    
+    // Handle both string and FileOutput responses
+    let audioUrl: string = "";
+    
+    if (typeof output === 'string') {
+      audioUrl = output;
+    } else if (Array.isArray(output) && output.length > 0) {
+      // Handle array response
+      const first = output[0];
+      if (typeof first === 'string') {
+        audioUrl = first;
+      } else if (first && typeof first === 'object' && 'url' in first && typeof first.url === 'string') {
+        audioUrl = first.url;
+      }
+    } else if (output && typeof output === 'object') {
+      // Handle object response
+      const obj = output as any;
+      if ('url' in obj && typeof obj.url === 'string') {
+        audioUrl = obj.url;
+      } else if (typeof obj.toString === 'function' && obj.toString() !== '[object Object]') {
+        // Try toString() for URL-like objects
+        audioUrl = obj.toString();
+      }
+    }
+    
+    console.log("[RVC] Extracted audio URL:", audioUrl);
+    
+    if (!audioUrl || audioUrl === "" || audioUrl.startsWith('[Function')) {
+      console.error("[RVC] Failed to extract valid audio URL from output:", output);
+      throw new Error("Failed to extract audio URL from Replicate response");
+    }
+    
     return {
-      audioUrl: output,
+      audioUrl,
       status: "completed",
     };
   } catch (error) {

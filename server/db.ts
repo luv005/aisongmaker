@@ -250,6 +250,8 @@ export async function updateVoiceCover(id: string, updates: Partial<InsertVoiceC
   }
 
   try {
+    console.log(`[Database] updateVoiceCover called with id: ${id}, updates:`, JSON.stringify(updates));
+    console.log(`[Database] updates keys:`, Object.keys(updates));
     await db.update(voiceCovers).set(updates).where(eq(voiceCovers.id, id));
   } catch (error) {
     console.error("[Database] Failed to update voice cover:", error);

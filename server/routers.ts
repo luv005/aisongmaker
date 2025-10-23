@@ -418,11 +418,13 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
 
         // Update with result
         try {
-          console.log(`[Voice Cover] Updating cover ${coverId} with status: ${result.status}`);
-          await updateVoiceCover(coverId, {
+          const updateData = {
             convertedAudioUrl: result.audioUrl,
             status: result.status,
-          });
+          };
+          console.log(`[Voice Cover] Updating cover ${coverId} with data:`, JSON.stringify(updateData));
+          console.log(`[Voice Cover] result object:`, JSON.stringify(result));
+          await updateVoiceCover(coverId, updateData);
           console.log(`[Voice Cover] Successfully updated cover ${coverId}`);
         } catch (updateError) {
           console.error(`[Voice Cover] Failed to update cover ${coverId}:`, updateError);
