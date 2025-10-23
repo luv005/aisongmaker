@@ -27,6 +27,7 @@ function getReplicateModelName(voiceId: string): string {
 }
 import { convertVoice, getTrendingVoices, getVoicesByCategory, searchVoices, VOICE_MODELS } from "./rvcApi.js";
 import { createVoiceCover, getUserVoiceCovers, updateVoiceCover, getDb } from "./db.js";
+import { getAudioDuration } from "./audioUtils.js";
 import { voiceModels } from "../drizzle/schema.js";
 import { eq } from "drizzle-orm";
 import { ENV } from "./_core/env.js";
@@ -237,7 +238,7 @@ export const appRouter = router({
 
         const { invokeLLM } = await import("./_core/llm.js");
 
-        const prompt = `You are a professional songwriter. Generate creative and engaging song lyrics in the ${input.style} style.${
+        const prompt = `Generate creative and engaging song lyrics in the ${input.style} style.${
           input.title ? ` The song title is "${input.title}".` : ""
         }${
           input.mood ? ` The mood/theme should be: ${input.mood}` : ""
@@ -404,50 +405,93 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
         const userId = ctx.user?.id || "dev-user";
         
         // Create database record
-        await createVoiceCover({
+        const coverData: any = {
           id: coverId,
           userId: userId,
           voiceModelId: input.voiceModelId,
           voiceModelName: voiceModel.name,
-          songTitle: songTitle,
           originalAudioUrl: processedAudioUrl,
-          status: "processing",
+          status: "processing" as const,
           pitchChange: input.pitchChange || "no-change",
-        });
-
-        // Start voice conversion
-        const result = await convertVoice({
-          songInput: processedAudioUrl,
-          rvcModel: getReplicateModelName(voiceModel.id),
-          pitchChange: input.pitchChange,
-        });
-
-        // Update with result
-        try {
-          const updateData = {
-            convertedAudioUrl: result.audioUrl,
-            status: result.status,
-          };
-          console.log(`[Voice Cover] Updating cover ${coverId} with data:`, JSON.stringify(updateData));
-          console.log(`[Voice Cover] result object:`, JSON.stringify(result));
-          await updateVoiceCover(coverId, updateData);
-          console.log(`[Voice Cover] Successfully updated cover ${coverId}`);
-        } catch (updateError) {
-          console.error(`[Voice Cover] Failed to update cover ${coverId}:`, updateError);
-          // Even if update fails, return the result so user can access the audio
-          console.warn(`[Voice Cover] Returning result despite update failure`);
+        };
+        
+        // Only include songTitle if it's defined
+        if (songTitle) {
+          coverData.songTitle = songTitle;
         }
+        
+        await createVoiceCover(coverData);
+
+        // Start voice conversion in background
+        (async () => {
+          try {
+            console.log(`[Voice Cover] Starting background conversion for ${coverId}`);
+            
+            const result = await convertVoice({
+              songInput: processedAudioUrl,
+              rvcModel: getReplicateModelName(voiceModel.id),
+              pitchChange: input.pitchChange,
+            });
+
+            console.log(`[Voice Cover] Conversion completed for ${coverId}`);
+            console.log(`[Voice Cover] Result:`, JSON.stringify(result));
+
+            // Update with result
+            // Get audio duration
+            let duration = 0;
+            if (result.audioUrl) {
+              try {
+                duration = await getAudioDuration(result.audioUrl);
+                console.log(`[Voice Cover] Audio duration: ${duration} seconds`);
+              } catch (err) {
+                console.error(`[Voice Cover] Failed to get audio duration:`, err);
+              }
+            }
+            
+            const updateData = {
+              convertedAudioUrl: result.audioUrl,
+              status: result.status,
+              duration,
+            };
+            
+            await updateVoiceCover(coverId, updateData);
+            console.log(`[Voice Cover] Successfully updated cover ${coverId}`);
+          } catch (error) {
+            console.error(`[Voice Cover] Error in background conversion for ${coverId}:`, error);
+            try {
+              await updateVoiceCover(coverId, {
+                status: "failed",
+              });
+            } catch (updateError) {
+              console.error(`[Voice Cover] Failed to update error status for ${coverId}:`, updateError);
+            }
+          }
+        })().catch(err => {
+          console.error(`[Voice Cover] Unhandled error in background process for ${coverId}:`, err);
+        });
 
         return {
+          success: true,
           id: coverId,
-          audioUrl: result.audioUrl,
-          status: result.status,
         };
       }),
 
+    // Get voice cover by ID (for polling status)
+    getById: publicProcedure
+      .input(z.object({ id: z.string() }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return null;
+        
+        const { voiceCovers } = await import("../drizzle/schema.js");
+        const result = await db.select().from(voiceCovers).where(eq(voiceCovers.id, input.id)).limit(1);
+        return result[0] || null;
+      }),
+
     // Get user's voice covers
-    getUserCovers: protectedProcedure.query(async ({ ctx }) => {
-      return await getUserVoiceCovers(ctx.user.id);
+    getUserCovers: publicProcedure.query(async ({ ctx }) => {
+      const userId = ctx.user?.id || "dev-user";
+      return await getUserVoiceCovers(userId);
     }),
   }),
 });
