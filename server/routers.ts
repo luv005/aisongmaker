@@ -280,6 +280,11 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
 
           // Extract lyrics (remove title line if present)
           let lyrics = contentText.replace(/Title:\s*["']?[^"'\n]+["']?\n*/i, "").trim();
+          
+          // Remove any system prompt text that might have leaked into the response
+          lyrics = lyrics.replace(/You are a professional songwriter\.?\s*/gi, "");
+          lyrics = lyrics.replace(/Generate creative and engaging song lyrics in\s*/gi, "");
+          lyrics = lyrics.trim();
 
           let wordCount = countWords(lyrics);
 
