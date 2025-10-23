@@ -26,11 +26,13 @@ export default function Layout(props: LayoutProps) {
   return (
     <div className="flex h-screen bg-background">
       <aside className="w-60 border-r border-border flex flex-col">
-        <div className="p-6 border-b border-border">
+        <div className="p-6 border-b border-border/50">
           <Link href="/">
-            <div className="flex items-center gap-2 text-xl font-bold cursor-pointer">
-              <Music className="h-6 w-6 text-primary" />
-              <span>Musicful</span>
+            <div className="flex items-center gap-3 text-xl font-bold cursor-pointer group">
+              <div className="p-2 rounded-xl gradient-accent glow transition-all duration-300 group-hover:scale-110">
+                <Music className="h-5 w-5 text-white" />
+              </div>
+              <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">AI Song Maker</span>
             </div>
           </Link>
         </div>

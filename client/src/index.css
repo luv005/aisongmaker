@@ -79,39 +79,39 @@
 }
 
 .dark {
-  /* Artistic color scheme - deep space with warm accents */
-  --primary: oklch(0.65 0.22 280); /* Deep purple */
+  /* Warm sunset color scheme - orange, coral, amber */
+  --primary: oklch(0.70 0.20 40); /* Vibrant orange */
   --primary-foreground: oklch(0.98 0 0);
-  --sidebar-primary: oklch(0.65 0.22 280);
+  --sidebar-primary: oklch(0.70 0.20 40);
   --sidebar-primary-foreground: oklch(0.98 0 0);
-  --background: oklch(0.10 0.02 280); /* Very dark purple-blue */
+  --background: oklch(0.12 0.03 30); /* Dark warm brown */
   --foreground: oklch(0.95 0 0);
-  --card: oklch(0.15 0.03 285); /* Slightly lighter with purple tint */
+  --card: oklch(0.18 0.04 35); /* Warm dark card */
   --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.14 0.02 280);
+  --popover: oklch(0.16 0.03 30);
   --popover-foreground: oklch(0.95 0 0);
-  --secondary: oklch(0.22 0.04 290); /* Purple-ish secondary */
+  --secondary: oklch(0.25 0.05 45); /* Warm secondary */
   --secondary-foreground: oklch(0.95 0 0);
-  --muted: oklch(0.20 0.03 285);
-  --muted-foreground: oklch(0.60 0.02 280);
-  --accent: oklch(0.70 0.20 320); /* Pink-purple accent */
+  --muted: oklch(0.22 0.04 35);
+  --muted-foreground: oklch(0.60 0.03 40);
+  --accent: oklch(0.75 0.18 60); /* Bright amber accent */
   --accent-foreground: oklch(0.98 0 0);
-  --destructive: oklch(0.60 0.25 25); /* Warm red */
+  --destructive: oklch(0.60 0.25 25); /* Red */
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.22 0.04 285); /* Subtle purple border */
-  --input: oklch(0.18 0.03 285);
-  --ring: oklch(0.65 0.22 280);
-  --chart-1: oklch(0.70 0.20 320); /* Pink */
-  --chart-2: oklch(0.65 0.22 280); /* Purple */
-  --chart-3: oklch(0.60 0.20 240); /* Blue */
-  --chart-4: oklch(0.70 0.18 50); /* Warm orange */
-  --chart-5: oklch(0.65 0.15 180); /* Teal */
-  --sidebar: oklch(0.12 0.02 280);
+  --border: oklch(0.25 0.05 35); /* Warm border */
+  --input: oklch(0.20 0.04 35);
+  --ring: oklch(0.70 0.20 40);
+  --chart-1: oklch(0.75 0.18 60); /* Amber */
+  --chart-2: oklch(0.70 0.20 40); /* Orange */
+  --chart-3: oklch(0.65 0.22 20); /* Coral */
+  --chart-4: oklch(0.72 0.16 50); /* Gold */
+  --chart-5: oklch(0.68 0.18 30); /* Peach */
+  --sidebar: oklch(0.14 0.03 30);
   --sidebar-foreground: oklch(0.90 0 0);
-  --sidebar-accent: oklch(0.20 0.04 285);
+  --sidebar-accent: oklch(0.22 0.05 35);
   --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.20 0.03 285);
-  --sidebar-ring: oklch(0.65 0.22 280);
+  --sidebar-border: oklch(0.22 0.04 35);
+  --sidebar-ring: oklch(0.70 0.20 40);
 }
 
 @layer base {
@@ -180,16 +180,16 @@
   }
 
   /* Gradient backgrounds */
-  .gradient-purple {
-    background: linear-gradient(135deg, oklch(0.18 0.08 280) 0%, oklch(0.12 0.04 290) 100%);
+  .gradient-sunset {
+    background: linear-gradient(135deg, oklch(0.20 0.06 40) 0%, oklch(0.14 0.04 30) 100%);
   }
 
   .gradient-card {
-    background: linear-gradient(135deg, oklch(0.16 0.06 285) 0%, oklch(0.14 0.04 295) 100%);
+    background: linear-gradient(135deg, oklch(0.20 0.05 35) 0%, oklch(0.16 0.04 30) 100%);
   }
 
   .gradient-accent {
-    background: linear-gradient(135deg, oklch(0.70 0.20 320) 0%, oklch(0.65 0.22 280) 100%);
+    background: linear-gradient(135deg, oklch(0.75 0.18 60) 0%, oklch(0.70 0.20 40) 100%);
   }
 
   /* Animated gradient border */
@@ -206,10 +206,10 @@
     border-radius: 1rem;
     padding: 2px;
     background: linear-gradient(45deg, 
-      oklch(0.70 0.20 320),
-      oklch(0.65 0.22 280),
-      oklch(0.60 0.20 240),
-      oklch(0.70 0.20 320)
+      oklch(0.75 0.18 60),
+      oklch(0.70 0.20 40),
+      oklch(0.65 0.22 20),
+      oklch(0.75 0.18 60)
     );
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
@@ -236,13 +236,13 @@
 
   /* Glow effect */
   .glow {
-    box-shadow: 0 0 20px oklch(0.65 0.22 280 / 0.3),
-                0 0 40px oklch(0.65 0.22 280 / 0.2);
+    box-shadow: 0 0 20px oklch(0.70 0.20 40 / 0.3),
+                0 0 40px oklch(0.70 0.20 40 / 0.2);
   }
 
   .glow-hover:hover {
-    box-shadow: 0 0 30px oklch(0.70 0.20 320 / 0.4),
-                0 0 60px oklch(0.70 0.20 320 / 0.3);
+    box-shadow: 0 0 30px oklch(0.75 0.18 60 / 0.4),
+                0 0 60px oklch(0.75 0.18 60 / 0.3);
     transition: box-shadow 0.3s ease;
   }
 }
