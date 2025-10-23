@@ -6,6 +6,7 @@ import { Loader2, Play, Pause, Download, Share2, MoreVertical, Music, Mic2, Spar
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
+import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 
 type TabType = "ai-music" | "ai-cover";
 
@@ -13,8 +14,7 @@ export default function Songs() {
   const { user, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState<TabType>("ai-music");
-  const [playingTrackId, setPlayingTrackId] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { playTrack, currentTrack, isPlaying, togglePlayPause } = useAudioPlayer();
 
   // Query AI Music tracks
   const { data: musicTracks = [], isLoading: musicLoading } = trpc.music.getHistory.useQuery(
@@ -52,28 +52,42 @@ export default function Songs() {
     }
   );
 
-  const handlePlayPause = (audioUrl: string, trackId: string) => {
-    if (playingTrackId === trackId) {
-      // Pause current track
-      audioRef.current?.pause();
-      setPlayingTrackId(null);
+  const handlePlayMusic = (track: any) => {
+    if (currentTrack?.id === track.id && isPlaying) {
+      togglePlayPause();
     } else {
-      // Play new track
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      audioRef.current = new Audio(audioUrl);
-      audioRef.current.play();
-      audioRef.current.onended = () => setPlayingTrackId(null);
-      setPlayingTrackId(trackId);
+      playTrack({
+        id: track.id,
+        title: track.title || 'Untitled',
+        artist: 'AI Music',
+        audioUrl: track.audioUrl,
+        thumbnailUrl: track.imageUrl,
+      });
     }
   };
 
-  useEffect(() => {
-    return () => {
-      audioRef.current?.pause();
-    };
-  }, []);
+  const handlePlayCover = (cover: any) => {
+    if (currentTrack?.id === cover.id && isPlaying) {
+      togglePlayPause();
+    } else {
+      playTrack({
+        id: cover.id,
+        title: cover.songTitle || cover.voiceModelName,
+        artist: cover.voiceModelName,
+        audioUrl: cover.convertedAudioUrl,
+      });
+    }
+  };
+
+  const handleDownload = (audioUrl: string, fileName: string) => {
+    const proxyUrl = `/api/download?url=${encodeURIComponent(audioUrl)}&filename=${encodeURIComponent(fileName)}`;
+    const a = document.createElement('a');
+    a.href = proxyUrl;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -168,9 +182,9 @@ export default function Songs() {
                   <Button
                     size="sm"
                     className="absolute -bottom-2 -right-2 h-10 w-10 rounded-full p-0 gradient-accent glow shadow-lg"
-                    onClick={() => handlePlayPause(track.audioUrl!, track.id)}
+                    onClick={() => handlePlayMusic(track)}
                   >
-                    {playingTrackId === track.id ? (
+                    {currentTrack?.id === track.id && isPlaying ? (
                       <Pause className="h-5 w-5" />
                     ) : (
                       <Play className="h-5 w-5 ml-0.5" />
@@ -199,7 +213,7 @@ export default function Songs() {
                       size="sm"
                       variant="ghost"
                       className="h-9 w-9 p-0 rounded-full hover:bg-primary/20"
-                      onClick={() => window.open(track.audioUrl, "_blank")}
+                      onClick={() => handleDownload(track.audioUrl!, `${track.title || 'Untitled'}.mp3`)}
                     >
                       <Download className="h-4 w-4" />
                     </Button>
@@ -285,9 +299,9 @@ export default function Songs() {
                   <Button
                     size="sm"
                     className="absolute -bottom-2 -right-2 h-10 w-10 rounded-full p-0 gradient-accent glow shadow-lg"
-                    onClick={() => handlePlayPause(cover.convertedAudioUrl!, cover.id)}
+                    onClick={() => handlePlayCover(cover)}
                   >
-                    {playingTrackId === cover.id ? (
+                    {currentTrack?.id === cover.id && isPlaying ? (
                       <Pause className="h-5 w-5" />
                     ) : (
                       <Play className="h-5 w-5 ml-0.5" />
@@ -318,7 +332,7 @@ export default function Songs() {
                       size="sm"
                       variant="ghost"
                       className="h-9 w-9 p-0 rounded-full hover:bg-primary/20"
-                      onClick={() => window.open(cover.convertedAudioUrl, "_blank")}
+                      onClick={() => handleDownload(cover.convertedAudioUrl!, `${cover.songTitle || cover.voiceModelName} (${cover.voiceModelName}).mp3`)}
                     >
                       <Download className="h-4 w-4" />
                     </Button>

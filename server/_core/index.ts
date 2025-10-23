@@ -63,6 +63,32 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+  
+  // Download proxy endpoint to handle CORS issues
+  app.get("/api/download", async (req, res) => {
+    try {
+      const { url, filename } = req.query;
+      if (!url || typeof url !== 'string') {
+        return res.status(400).send('Missing url parameter');
+      }
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        return res.status(response.status).send('Failed to fetch audio');
+      }
+      
+      const buffer = await response.arrayBuffer();
+      const fileName = (filename && typeof filename === 'string') ? filename : 'audio.mp3';
+      
+      res.setHeader('Content-Type', 'audio/mpeg');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.send(Buffer.from(buffer));
+    } catch (error) {
+      console.error('Download proxy error:', error);
+      res.status(500).send('Download failed');
+    }
+  });
+  
   // tRPC API
   app.use(
     "/api/trpc",

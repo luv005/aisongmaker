@@ -9,6 +9,13 @@ var __export = (target, all) => {
 };
 
 // drizzle/schema.ts
+var schema_exports = {};
+__export(schema_exports, {
+  musicTracks: () => musicTracks,
+  users: () => users,
+  voiceCovers: () => voiceCovers,
+  voiceModels: () => voiceModels
+});
 import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 var users, musicTracks, voiceCovers, voiceModels;
 var init_schema = __esm({
@@ -1823,6 +1830,52 @@ async function searchVoices(query) {
 
 // server/routers.ts
 init_db();
+
+// server/audioUtils.ts
+import { getAudioDurationInSeconds } from "get-audio-duration";
+import { createWriteStream } from "fs";
+import { unlink } from "fs/promises";
+import { tmpdir } from "os";
+import { join } from "path";
+import { randomBytes } from "crypto";
+async function getAudioDuration(audioUrl) {
+  let tempFilePath = null;
+  try {
+    const tempFileName = `audio-${randomBytes(16).toString("hex")}.mp3`;
+    tempFilePath = join(tmpdir(), tempFileName);
+    console.log(`[Audio Utils] Downloading audio from ${audioUrl}`);
+    const response = await fetch(audioUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to download audio: ${response.statusText}`);
+    }
+    const fileStream = createWriteStream(tempFilePath);
+    const buffer = await response.arrayBuffer();
+    fileStream.write(Buffer.from(buffer));
+    fileStream.end();
+    await new Promise((resolve, reject) => {
+      fileStream.on("finish", resolve);
+      fileStream.on("error", reject);
+    });
+    console.log(`[Audio Utils] Getting duration from ${tempFilePath}`);
+    const duration = await getAudioDurationInSeconds(tempFilePath);
+    console.log(`[Audio Utils] Duration: ${duration} seconds`);
+    return Math.round(duration);
+  } catch (error) {
+    console.error("[Audio Utils] Error getting audio duration:", error);
+    return 0;
+  } finally {
+    if (tempFilePath) {
+      try {
+        await unlink(tempFilePath);
+        console.log(`[Audio Utils] Cleaned up temp file ${tempFilePath}`);
+      } catch (err) {
+        console.error(`[Audio Utils] Failed to clean up temp file:`, err);
+      }
+    }
+  }
+}
+
+// server/routers.ts
 init_schema();
 init_env();
 import { eq as eq3 } from "drizzle-orm";
@@ -1856,7 +1909,7 @@ var uploadRouter = router({
 init_storage();
 import { exec } from "child_process";
 import { promisify } from "util";
-import { unlink } from "fs/promises";
+import { unlink as unlink2 } from "fs/promises";
 import { nanoid as nanoid2 } from "nanoid";
 var execAsync = promisify(exec);
 async function downloadYouTubeAudio(youtubeUrl) {
@@ -1905,11 +1958,11 @@ async function downloadYouTubeAudio(youtubeUrl) {
     const audioBuffer = await fs4.readFile(tempFile);
     const s3Key = `voice-covers/input-${tempId}.mp3`;
     const result = await storagePut(s3Key, audioBuffer, "audio/mpeg");
-    await unlink(tempFile);
+    await unlink2(tempFile);
     return { url: result.url, title: videoTitle };
   } catch (error) {
     try {
-      await unlink(tempFile);
+      await unlink2(tempFile);
     } catch {
     }
     throw new Error(`Failed to upload YouTube audio to S3: ${error instanceof Error ? error.message : String(error)}`);
@@ -2218,43 +2271,75 @@ ${lyrics}`
         console.log(`[Voice Cover] Song title: ${songTitle}`);
       }
       const userId = ctx.user?.id || "dev-user";
-      await createVoiceCover({
+      const coverData = {
         id: coverId,
         userId,
         voiceModelId: input.voiceModelId,
         voiceModelName: voiceModel.name,
-        songTitle,
         originalAudioUrl: processedAudioUrl,
         status: "processing",
         pitchChange: input.pitchChange || "no-change"
-      });
-      const result = await convertVoice({
-        songInput: processedAudioUrl,
-        rvcModel: getReplicateModelName(voiceModel.id),
-        pitchChange: input.pitchChange
-      });
-      try {
-        const updateData = {
-          convertedAudioUrl: result.audioUrl,
-          status: result.status
-        };
-        console.log(`[Voice Cover] Updating cover ${coverId} with data:`, JSON.stringify(updateData));
-        console.log(`[Voice Cover] result object:`, JSON.stringify(result));
-        await updateVoiceCover(coverId, updateData);
-        console.log(`[Voice Cover] Successfully updated cover ${coverId}`);
-      } catch (updateError) {
-        console.error(`[Voice Cover] Failed to update cover ${coverId}:`, updateError);
-        console.warn(`[Voice Cover] Returning result despite update failure`);
+      };
+      if (songTitle) {
+        coverData.songTitle = songTitle;
       }
+      await createVoiceCover(coverData);
+      (async () => {
+        try {
+          console.log(`[Voice Cover] Starting background conversion for ${coverId}`);
+          const result = await convertVoice({
+            songInput: processedAudioUrl,
+            rvcModel: getReplicateModelName(voiceModel.id),
+            pitchChange: input.pitchChange
+          });
+          console.log(`[Voice Cover] Conversion completed for ${coverId}`);
+          console.log(`[Voice Cover] Result:`, JSON.stringify(result));
+          let duration = 0;
+          if (result.audioUrl) {
+            try {
+              duration = await getAudioDuration(result.audioUrl);
+              console.log(`[Voice Cover] Audio duration: ${duration} seconds`);
+            } catch (err) {
+              console.error(`[Voice Cover] Failed to get audio duration:`, err);
+            }
+          }
+          const updateData = {
+            convertedAudioUrl: result.audioUrl,
+            status: result.status,
+            duration
+          };
+          await updateVoiceCover(coverId, updateData);
+          console.log(`[Voice Cover] Successfully updated cover ${coverId}`);
+        } catch (error) {
+          console.error(`[Voice Cover] Error in background conversion for ${coverId}:`, error);
+          try {
+            await updateVoiceCover(coverId, {
+              status: "failed"
+            });
+          } catch (updateError) {
+            console.error(`[Voice Cover] Failed to update error status for ${coverId}:`, updateError);
+          }
+        }
+      })().catch((err) => {
+        console.error(`[Voice Cover] Unhandled error in background process for ${coverId}:`, err);
+      });
       return {
-        id: coverId,
-        audioUrl: result.audioUrl,
-        status: result.status
+        success: true,
+        id: coverId
       };
     }),
+    // Get voice cover by ID (for polling status)
+    getById: publicProcedure.input(z3.object({ id: z3.string() })).query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) return null;
+      const { voiceCovers: voiceCovers2 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
+      const result = await db.select().from(voiceCovers2).where(eq3(voiceCovers2.id, input.id)).limit(1);
+      return result[0] || null;
+    }),
     // Get user's voice covers
-    getUserCovers: protectedProcedure.query(async ({ ctx }) => {
-      return await getUserVoiceCovers(ctx.user.id);
+    getUserCovers: publicProcedure.query(async ({ ctx }) => {
+      const userId = ctx.user?.id || "dev-user";
+      return await getUserVoiceCovers(userId);
     })
   })
 });

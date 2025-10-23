@@ -4,7 +4,9 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { AudioPlayerProvider } from "./contexts/AudioPlayerContext";
 import Layout from "./components/Layout";
+import { GlobalMusicPlayer } from "./components/GlobalMusicPlayer";
 import Home from "./pages/Home";
 import AICover from "./pages/AICover";
 import VoiceCoverCreate from "./pages/VoiceCoverCreate";
@@ -25,6 +27,7 @@ function Router() {
         <Route path={"/404"} component={NotFound} />
         <Route component={NotFound} />
       </Switch>
+      <GlobalMusicPlayer />
     </Layout>
   );
 }
@@ -41,10 +44,12 @@ function App() {
         defaultTheme="dark"
         // switchable
       >
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
+        <AudioPlayerProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </AudioPlayerProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

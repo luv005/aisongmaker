@@ -253,6 +253,9 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
           "You are a professional songwriter who creates engaging, emotional, and memorable lyrics.";
 
         try {
+          console.log("[Lyrics Generation] System prompt:", songwriterSystemPrompt);
+          console.log("[Lyrics Generation] User prompt:", prompt);
+          
           const response = await invokeLLM({
             messages: [
               {
@@ -265,6 +268,8 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
               },
             ],
           });
+          
+          console.log("[Lyrics Generation] Raw response:", response.choices[0]?.message?.content);
 
           const content = response.choices[0]?.message?.content;
           const contentText = typeof content === "string" ? content : "";
@@ -282,9 +287,17 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
           let lyrics = contentText.replace(/Title:\s*["']?[^"'\n]+["']?\n*/i, "").trim();
           
           // Remove any system prompt text that might have leaked into the response
+          // The LLM sometimes includes the prompt in the lyrics, so we need to remove it
+          console.log("[Lyrics Generation] Before sanitization:", lyrics.substring(0, 200));
+          // Remove the full phrase first
+          lyrics = lyrics.replace(/You are a professional songwriter\.?\s*Generate creative and engaging song lyrics in\s*/gi, "");
+          // Then remove each part separately in case they appear independently
           lyrics = lyrics.replace(/You are a professional songwriter\.?\s*/gi, "");
           lyrics = lyrics.replace(/Generate creative and engaging song lyrics in\s*/gi, "");
+          // Clean up any resulting empty lines or extra whitespace
+          lyrics = lyrics.replace(/\n\s*\n\s*\n/g, "\n\n");
           lyrics = lyrics.trim();
+          console.log("[Lyrics Generation] After sanitization:", lyrics.substring(0, 200));
 
           let wordCount = countWords(lyrics);
 

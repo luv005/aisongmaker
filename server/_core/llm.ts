@@ -455,12 +455,13 @@ const extractUserPrompt = (messages: Message[]): string => {
 
 const buildFallbackLyrics = (messages: Message[]): string => {
   const prompt = extractUserPrompt(messages);
-  const topic =
-    prompt
-      .split(/\s+/)
-      .slice(0, 12)
-      .join(" ")
-      .trim() || "this moment";
+  
+  // Extract style/genre from the prompt (e.g., "Rock style", "Pop style")
+  const styleMatch = prompt.match(/in the (\w+) style/i);
+  const style = styleMatch ? styleMatch[1] : "music";
+  
+  // Use the style as the topic instead of the full prompt
+  const topic = style.toLowerCase();
 
   const hook = topic
     .charAt(0)

@@ -1,0 +1,1 @@
+ALTER TABLE `voice_covers` ADD `songTitle` varchar(256);
