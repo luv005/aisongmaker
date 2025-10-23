@@ -6,9 +6,19 @@ import { storagePut } from "./storage.js";
 
 const execAsync = promisify(exec);
 
-export async function downloadYouTubeAudio(youtubeUrl: string): Promise<string> {
+export async function downloadYouTubeAudio(youtubeUrl: string): Promise<{ url: string; title: string }> {
   const tempId = nanoid();
   const tempFile = `/tmp/youtube-${tempId}.mp3`;
+  
+  // First, try to get the video title
+  let videoTitle = "Unknown Title";
+  try {
+    const { stdout } = await execAsync(`yt-dlp --print "%(title)s" "${youtubeUrl}"`, { timeout: 10000 });
+    videoTitle = stdout.trim();
+    console.log(`[YouTube] Video title: ${videoTitle}`);
+  } catch (error) {
+    console.warn(`[YouTube] Failed to get video title:`, error instanceof Error ? error.message : String(error));
+  }
   
   // Try multiple strategies
   const strategies = [
@@ -62,7 +72,7 @@ export async function downloadYouTubeAudio(youtubeUrl: string): Promise<string> 
     // Clean up temp file
     await unlink(tempFile);
     
-    return result.url;
+    return { url: result.url, title: videoTitle };
   } catch (error) {
     // Clean up temp file on error
     try {

@@ -237,9 +237,11 @@ export default function Songs() {
               </div>
 
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm mb-1 truncate">{cover.voiceModelName}</h3>
+                <h3 className="font-semibold text-sm mb-1 truncate">
+                  {cover.songTitle || cover.voiceModelName}
+                </h3>
                 <p className="text-xs text-muted-foreground mb-2">
-                  Pitch: {cover.pitchChange || "no-change"}
+                  {cover.songTitle ? cover.voiceModelName : `Pitch: ${cover.pitchChange || "no-change"}`}
                 </p>
                 <div className="flex items-center justify-between">
                   {getStatusBadge(cover.status)}

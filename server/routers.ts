@@ -389,10 +389,15 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
         
         // Handle YouTube URL if provided
         let processedAudioUrl = input.audioUrl;
+        let songTitle: string | undefined;
+        
         if (isYouTubeUrl(input.audioUrl)) {
           console.log(`[Voice Cover] Downloading YouTube audio: ${input.audioUrl}`);
-          processedAudioUrl = await downloadYouTubeAudio(input.audioUrl);
+          const downloadResult = await downloadYouTubeAudio(input.audioUrl);
+          processedAudioUrl = downloadResult.url;
+          songTitle = downloadResult.title;
           console.log(`[Voice Cover] YouTube audio downloaded to: ${processedAudioUrl}`);
+          console.log(`[Voice Cover] Song title: ${songTitle}`);
         }
         
         // Use dev user if not authenticated
@@ -404,6 +409,7 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
           userId: userId,
           voiceModelId: input.voiceModelId,
           voiceModelName: voiceModel.name,
+          songTitle: songTitle,
           originalAudioUrl: processedAudioUrl,
           status: "processing",
           pitchChange: input.pitchChange || "no-change",

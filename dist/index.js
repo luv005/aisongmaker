@@ -42,6 +42,7 @@ var init_schema = __esm({
       userId: varchar("userId", { length: 64 }).notNull(),
       voiceModelId: varchar("voiceModelId", { length: 64 }).notNull(),
       voiceModelName: varchar("voiceModelName", { length: 128 }).notNull(),
+      songTitle: varchar("songTitle", { length: 256 }),
       originalAudioUrl: text("originalAudioUrl"),
       convertedAudioUrl: text("convertedAudioUrl"),
       status: mysqlEnum("status", ["processing", "completed", "failed"]).default("processing").notNull(),
@@ -1861,6 +1862,14 @@ var execAsync = promisify(exec);
 async function downloadYouTubeAudio(youtubeUrl) {
   const tempId = nanoid2();
   const tempFile = `/tmp/youtube-${tempId}.mp3`;
+  let videoTitle = "Unknown Title";
+  try {
+    const { stdout } = await execAsync(`yt-dlp --print "%(title)s" "${youtubeUrl}"`, { timeout: 1e4 });
+    videoTitle = stdout.trim();
+    console.log(`[YouTube] Video title: ${videoTitle}`);
+  } catch (error) {
+    console.warn(`[YouTube] Failed to get video title:`, error instanceof Error ? error.message : String(error));
+  }
   const strategies = [
     // Strategy 1: Use android client
     `yt-dlp --extractor-args "youtube:player_client=android" -x --audio-format mp3 --audio-quality 0 -o "${tempFile}" "${youtubeUrl}"`,
@@ -1897,7 +1906,7 @@ async function downloadYouTubeAudio(youtubeUrl) {
     const s3Key = `voice-covers/input-${tempId}.mp3`;
     const result = await storagePut(s3Key, audioBuffer, "audio/mpeg");
     await unlink(tempFile);
-    return result.url;
+    return { url: result.url, title: videoTitle };
   } catch (error) {
     try {
       await unlink(tempFile);
@@ -2199,10 +2208,14 @@ ${lyrics}`
       }
       const coverId = nanoid3();
       let processedAudioUrl = input.audioUrl;
+      let songTitle;
       if (isYouTubeUrl(input.audioUrl)) {
         console.log(`[Voice Cover] Downloading YouTube audio: ${input.audioUrl}`);
-        processedAudioUrl = await downloadYouTubeAudio(input.audioUrl);
+        const downloadResult = await downloadYouTubeAudio(input.audioUrl);
+        processedAudioUrl = downloadResult.url;
+        songTitle = downloadResult.title;
         console.log(`[Voice Cover] YouTube audio downloaded to: ${processedAudioUrl}`);
+        console.log(`[Voice Cover] Song title: ${songTitle}`);
       }
       const userId = ctx.user?.id || "dev-user";
       await createVoiceCover({
@@ -2210,6 +2223,7 @@ ${lyrics}`
         userId,
         voiceModelId: input.voiceModelId,
         voiceModelName: voiceModel.name,
+        songTitle,
         originalAudioUrl: processedAudioUrl,
         status: "processing",
         pitchChange: input.pitchChange || "no-change"
