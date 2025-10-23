@@ -2183,10 +2183,17 @@ ${lyrics}`
         rvcModel: getReplicateModelName(voiceModel.id),
         pitchChange: input.pitchChange
       });
-      await updateVoiceCover(coverId, {
-        convertedAudioUrl: result.audioUrl,
-        status: result.status
-      });
+      try {
+        console.log(`[Voice Cover] Updating cover ${coverId} with status: ${result.status}`);
+        await updateVoiceCover(coverId, {
+          convertedAudioUrl: result.audioUrl,
+          status: result.status
+        });
+        console.log(`[Voice Cover] Successfully updated cover ${coverId}`);
+      } catch (updateError) {
+        console.error(`[Voice Cover] Failed to update cover ${coverId}:`, updateError);
+        console.warn(`[Voice Cover] Returning result despite update failure`);
+      }
       return {
         id: coverId,
         audioUrl: result.audioUrl,

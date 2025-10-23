@@ -417,10 +417,18 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
         });
 
         // Update with result
-        await updateVoiceCover(coverId, {
-          convertedAudioUrl: result.audioUrl,
-          status: result.status,
-        });
+        try {
+          console.log(`[Voice Cover] Updating cover ${coverId} with status: ${result.status}`);
+          await updateVoiceCover(coverId, {
+            convertedAudioUrl: result.audioUrl,
+            status: result.status,
+          });
+          console.log(`[Voice Cover] Successfully updated cover ${coverId}`);
+        } catch (updateError) {
+          console.error(`[Voice Cover] Failed to update cover ${coverId}:`, updateError);
+          // Even if update fails, return the result so user can access the audio
+          console.warn(`[Voice Cover] Returning result despite update failure`);
+        }
 
         return {
           id: coverId,
