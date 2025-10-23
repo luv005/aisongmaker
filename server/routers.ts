@@ -411,7 +411,6 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
           voiceModelName: voiceModel.name,
           songTitle: songTitle,
           originalAudioUrl: processedAudioUrl,
-          convertedAudioUrl: null,
           status: "processing",
           pitchChange: input.pitchChange || "no-change",
         });

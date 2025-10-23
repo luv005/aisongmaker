@@ -2225,7 +2225,6 @@ ${lyrics}`
         voiceModelName: voiceModel.name,
         songTitle,
         originalAudioUrl: processedAudioUrl,
-        convertedAudioUrl: null,
         status: "processing",
         pitchChange: input.pitchChange || "no-change"
       });
