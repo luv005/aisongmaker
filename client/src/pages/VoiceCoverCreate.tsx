@@ -33,6 +33,28 @@ export default function VoiceCoverCreate() {
     document.body.removeChild(a);
   };
 
+  const handleShare = async (coverId: string, title: string) => {
+    const shareUrl = `${window.location.origin}/song/${coverId}`;
+    
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: title || "My AI Cover",
+          text: `Check out my AI cover "${title || "My AI Cover"}" created with AI!`,
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success("Link copied to clipboard!");
+      }
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') {
+        console.error("Error sharing:", err);
+        toast.error("Failed to share");
+      }
+    }
+  };
+
   const handlePlay = (cover: any) => {
     if (currentTrack?.id === cover.id && isPlaying) {
       togglePlayPause();
@@ -518,6 +540,12 @@ export default function VoiceCoverCreate() {
                               className="hover:text-foreground transition-colors"
                             >
                               <Download className="h-4 w-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleShare(cover.id, `${cover.songTitle || 'Untitled'} (${cover.voiceModelName})`)}
+                              className="hover:text-foreground transition-colors"
+                            >
+                              <Share2 className="h-4 w-4" />
                             </button>
                             <button 
                               onClick={() => handlePlay(cover)}

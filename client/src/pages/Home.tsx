@@ -194,6 +194,28 @@ export default function Home() {
     document.body.removeChild(a);
   };
 
+  const handleShare = async (trackId: string, title: string) => {
+    const shareUrl = `${window.location.origin}/song/${trackId}`;
+    
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: title || "My Song",
+          text: `Check out my song "${title || "My Song"}" created with AI!`,
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success("Link copied to clipboard!");
+      }
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') {
+        console.error("Error sharing:", err);
+        toast.error("Failed to share");
+      }
+    }
+  };
+
   const getSettingsSummary = () => {
     const parts = [musicSettings.style, musicSettings.mood, musicSettings.scenario].filter(Boolean);
     if (parts.length === 0) return "Select music settings";
@@ -569,6 +591,15 @@ export default function Home() {
                               className="hover:text-foreground transition-colors"
                             >
                               <Download className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleShare(track.id, track.title || 'Untitled');
+                              }}
+                              className="hover:text-foreground transition-colors"
+                            >
+                              <Share2 className="h-4 w-4" />
                             </button>
                             <button
                               onClick={(e) => {
