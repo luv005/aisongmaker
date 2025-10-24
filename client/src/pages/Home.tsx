@@ -103,6 +103,7 @@ export default function Home() {
       const songTitle = title || description.split(" ").slice(0, 5).join(" ") || "Untitled";
 
       generateMutation.mutate({
+        prompt: "", // Empty prompt for description mode
         description: description,
         title: songTitle,
         style: selectedSettings.join(", ") || "Pop", // Default to Pop if no settings
