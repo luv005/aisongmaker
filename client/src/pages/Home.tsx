@@ -489,10 +489,15 @@ export default function Home() {
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Switch checked={false} className="scale-75" />
-                          <span className="text-xs text-muted-foreground">Publish</span>
-                        </div>
+                        {/* Status Indicator */}
+                        {track.status === "pending" || track.status === "processing" ? (
+                          <Badge variant="outline" className="text-xs">
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            {track.status === "pending" ? "Pending" : "Generating..."}
+                          </Badge>
+                        ) : track.status === "failed" ? (
+                          <Badge variant="destructive" className="text-xs">Failed</Badge>
+                        ) : null}
 
                         {track.status === "completed" && track.audioUrl ? (
                           <div className="flex items-center gap-2 text-muted-foreground">

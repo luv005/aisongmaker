@@ -501,10 +501,15 @@ export default function VoiceCoverCreate() {
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Switch checked={false} className="scale-75" />
-                          <span className="text-xs text-muted-foreground">Publish</span>
-                        </div>
+                        {/* Status Indicator */}
+                        {cover.status === "pending" || cover.status === "processing" ? (
+                          <Badge variant="outline" className="text-xs">
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            {cover.status === "pending" ? "Pending" : "Generating..."}
+                          </Badge>
+                        ) : cover.status === "failed" ? (
+                          <Badge variant="destructive" className="text-xs">Failed</Badge>
+                        ) : null}
 
                         {cover.status === "completed" && cover.convertedAudioUrl ? (
                           <div className="flex items-center gap-2 text-muted-foreground">
