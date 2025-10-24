@@ -2202,7 +2202,8 @@ var appRouter = router({
   music: router({
     generate: protectedProcedure.input(
       z3.object({
-        prompt: z3.string(),
+        prompt: z3.string().optional(),
+        description: z3.string().optional(),
         title: z3.string(),
         style: z3.string(),
         model: z3.enum(["V5", "V4_5PLUS", "V4_5", "V4", "V3_5"]),
@@ -2215,6 +2216,39 @@ var appRouter = router({
       const { generateMusic: generateMusic2, pollTaskCompletion: pollTaskCompletion2 } = await Promise.resolve().then(() => (init_minimaxApi(), minimaxApi_exports));
       const { generateSongArtwork: generateSongArtwork2 } = await Promise.resolve().then(() => (init_imageGenerator(), imageGenerator_exports));
       const trackId = `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      let finalPrompt = input.prompt || "";
+      if (input.description && !input.prompt) {
+        console.log(`[Music Generation] Generating lyrics from description for ${trackId}`);
+        try {
+          const { invokeLLM: invokeLLM2 } = await Promise.resolve().then(() => (init_llm(), llm_exports));
+          const lyricsPrompt = `Generate creative and engaging song lyrics based on this description: "${input.description}"
+
+Style: ${input.style}
+${input.instrumental ? "Note: This will be an instrumental track, so keep lyrics minimal or optional." : ""}
+
+Generate complete song lyrics with proper structure including [Intro], [Verse], [Chorus], [Bridge], etc. tags.
+Make the lyrics emotional, memorable, and suitable for the style.
+Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes (about ${MAX_LYRIC_WORDS} words).`;
+          const response = await invokeLLM2({
+            messages: [
+              {
+                role: "system",
+                content: "You are a professional songwriter who creates engaging, emotional, and memorable lyrics based on user descriptions."
+              },
+              {
+                role: "user",
+                content: lyricsPrompt
+              }
+            ]
+          });
+          const generatedLyrics = response.choices[0]?.message?.content || "";
+          finalPrompt = trimLyrics(generatedLyrics);
+          console.log(`[Music Generation] Generated lyrics for ${trackId}:`, finalPrompt.substring(0, 200) + "...");
+        } catch (error) {
+          console.error(`[Music Generation] Failed to generate lyrics from description:`, error);
+          throw new Error("Failed to generate lyrics from description. Please try again or use the Lyrics tab.");
+        }
+      }
       let imageUrl;
       try {
         imageUrl = await generateSongArtwork2({
@@ -2230,7 +2264,7 @@ var appRouter = router({
         id: trackId,
         userId: ctx.user.id,
         title: input.title,
-        prompt: input.prompt,
+        prompt: finalPrompt,
         style: input.style,
         model: input.model,
         instrumental: input.instrumental ? "yes" : "no",
@@ -2242,7 +2276,7 @@ var appRouter = router({
           console.log(`[Music Generation] Starting generation for track ${trackId}`);
           console.log(`[Music Generation] Input:`, JSON.stringify(input, null, 2));
           const result = await generateMusic2({
-            prompt: input.prompt,
+            prompt: finalPrompt,
             title: input.title,
             style: input.style,
             instrumental: input.instrumental,

@@ -33,6 +33,7 @@ export default function Home() {
   const [showStructureMenu, setShowStructureMenu] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [isGeneratingLyrics, setIsGeneratingLyrics] = useState(false);
+  const [description, setDescription] = useState("");
 
   const generateMutation = trpc.music.generate.useMutation({
     onSuccess: () => {
@@ -85,16 +86,35 @@ export default function Home() {
       return;
     }
 
-    if (!prompt && !instrumental && activeTab === "lyrics") {
-      toast.error("Please enter lyrics or description");
+    if (selectedSettings.length === 0) {
+      toast.error("Please select at least one setting (Style, Mood, or Scenario)");
       return;
     }
 
-    const selectedSettings = [musicSettings.style, musicSettings.mood, musicSettings.scenario]
-      .filter(Boolean);
+    // Description mode: generate lyrics from description first
+    if (activeTab === "description") {
+      if (!description.trim()) {
+        toast.error("Please enter a song description");
+        return;
+      }
 
-    if (selectedSettings.length === 0) {
-      toast.error("Please select at least one setting (Style, Mood, or Scenario)");
+      const songTitle = title || description.split(" ").slice(0, 5).join(" ") || "Untitled";
+
+      generateMutation.mutate({
+        description: description,
+        title: songTitle,
+        style: selectedSettings.join(", "),
+        model: "V5",
+        customMode,
+        instrumental,
+        gender,
+      });
+      return;
+    }
+
+    // Lyrics mode: use provided lyrics
+    if (!prompt && !instrumental) {
+      toast.error("Please enter lyrics");
       return;
     }
 
@@ -104,7 +124,7 @@ export default function Home() {
       prompt: prompt || "",
       title: songTitle,
       style: selectedSettings.join(", "),
-      model: "V5", // Placeholder for compatibility
+      model: "V5",
       customMode,
       instrumental,
       gender,
@@ -289,68 +309,110 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Lyrics */}
-          <div>
-            <Label htmlFor="lyrics" className="text-sm font-medium mb-2 block">
-              Lyrics
-            </Label>
-            <Textarea
-              id="lyrics"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Enter lyrics of your music or try to get inspired"
-              className="min-h-[300px] bg-background resize-none"
-              maxLength={3000}
-            />
-            <div className="text-xs text-muted-foreground mt-1 text-right">
-              {prompt.length} / 3000
-            </div>
+          {/* Lyrics Tab */}
+          {activeTab === "lyrics" && (
+            <div>
+              <Label htmlFor="lyrics" className="text-sm font-medium mb-2 block">
+                Lyrics
+              </Label>
+              <Textarea
+                id="lyrics"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="Enter lyrics of your music or try to get inspired"
+                className="min-h-[300px] bg-background resize-none"
+                maxLength={3000}
+              />
+              <div className="text-xs text-muted-foreground mt-1 text-right">
+                {prompt.length} / 3000
+              </div>
 
-            <div className="flex items-center gap-2 mt-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleGenerateLyrics}
-                disabled={isGeneratingLyrics || generateLyricsMutation.isPending}
-                className="bg-primary/10 border-primary/20 hover:bg-primary/20"
-              >
-                {isGeneratingLyrics || generateLyricsMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Write Lyrics For Me
-                  </>
-                )}
-              </Button>
-
-              <div className="relative">
+              <div className="flex items-center gap-2 mt-3">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowStructureMenu(!showStructureMenu)}
+                  onClick={handleGenerateLyrics}
+                  disabled={isGeneratingLyrics || generateLyricsMutation.isPending}
+                  className="bg-primary/10 border-primary/20 hover:bg-primary/20"
                 >
-                  <ListMusic className="h-4 w-4" />
+                  {isGeneratingLyrics || generateLyricsMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Write Lyrics For Me
+                    </>
+                  )}
                 </Button>
-                {showStructureMenu && (
-                  <div className="absolute top-full left-0 mt-1 bg-popover border border-border rounded-md shadow-lg z-10 min-w-[150px]">
-                    {songStructures.map((structure) => (
-                      <button
-                        key={structure}
-                        className="w-full px-3 py-2 text-left text-sm hover:bg-accent transition-colors"
-                        onClick={() => insertStructure(structure)}
-                      >
-                        {structure}
-                      </button>
-                    ))}
-                  </div>
-                )}
+
+                <div className="relative">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowStructureMenu(!showStructureMenu)}
+                  >
+                    <ListMusic className="h-4 w-4" />
+                  </Button>
+                  {showStructureMenu && (
+                    <div className="absolute top-full left-0 mt-1 bg-popover border border-border rounded-md shadow-lg z-10 min-w-[150px]">
+                      {songStructures.map((structure) => (
+                        <button
+                          key={structure}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-accent transition-colors"
+                          onClick={() => insertStructure(structure)}
+                        >
+                          {structure}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Description Tab */}
+          {activeTab === "description" && (
+            <div>
+              <Label htmlFor="description" className="text-sm font-medium mb-2 block">
+                Song Description
+              </Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe the song you want to create, e.g., 'make a song about a special person in your life with instrumental bluegrass'"
+                className="min-h-[300px] bg-background resize-none"
+                maxLength={500}
+              />
+              <div className="text-xs text-muted-foreground mt-1 text-right">
+                {description.length} / 500
+              </div>
+
+              <div className="flex items-center gap-2 mt-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled
+                  className="bg-primary/10 border-primary/20"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Get Inspired
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Audio Tab - Placeholder */}
+          {activeTab === "audio" && (
+            <div className="text-center py-12 text-muted-foreground">
+              <Music className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Audio upload coming soon</p>
+            </div>
+          )}
 
           {/* Gender */}
           <div>

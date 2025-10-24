@@ -96,7 +96,8 @@ export const appRouter = router({
     generate: protectedProcedure
       .input(
         z.object({
-          prompt: z.string(),
+          prompt: z.string().optional(),
+          description: z.string().optional(),
           title: z.string(),
           style: z.string(),
           model: z.enum(["V5", "V4_5PLUS", "V4_5", "V4", "V3_5"]),
@@ -111,6 +112,47 @@ export const appRouter = router({
         const { generateSongArtwork } = await import("./_core/imageGenerator.js");
         
         const trackId = `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        // If description is provided, generate lyrics from it
+        let finalPrompt = input.prompt || "";
+        
+        if (input.description && !input.prompt) {
+          console.log(`[Music Generation] Generating lyrics from description for ${trackId}`);
+          
+          try {
+            const { invokeLLM } = await import("./_core/llm.js");
+            
+            const lyricsPrompt = `Generate creative and engaging song lyrics based on this description: "${input.description}"
+
+Style: ${input.style}
+${input.instrumental ? "Note: This will be an instrumental track, so keep lyrics minimal or optional." : ""}
+
+Generate complete song lyrics with proper structure including [Intro], [Verse], [Chorus], [Bridge], etc. tags.
+Make the lyrics emotional, memorable, and suitable for the style.
+Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes (about ${MAX_LYRIC_WORDS} words).`;
+
+            const response = await invokeLLM({
+              messages: [
+                {
+                  role: "system",
+                  content: "You are a professional songwriter who creates engaging, emotional, and memorable lyrics based on user descriptions.",
+                },
+                {
+                  role: "user",
+                  content: lyricsPrompt,
+                },
+              ],
+            });
+            
+            const generatedLyrics = response.choices[0]?.message?.content || "";
+            finalPrompt = trimLyrics(generatedLyrics);
+            
+            console.log(`[Music Generation] Generated lyrics for ${trackId}:`, finalPrompt.substring(0, 200) + "...");
+          } catch (error) {
+            console.error(`[Music Generation] Failed to generate lyrics from description:`, error);
+            throw new Error("Failed to generate lyrics from description. Please try again or use the Lyrics tab.");
+          }
+        }
         
         // Generate artwork for the song
         let imageUrl: string | undefined;
@@ -130,7 +172,7 @@ export const appRouter = router({
           id: trackId,
           userId: ctx.user.id,
           title: input.title,
-          prompt: input.prompt,
+          prompt: finalPrompt,
           style: input.style,
           model: input.model,
           instrumental: input.instrumental ? "yes" : "no",
@@ -146,7 +188,7 @@ export const appRouter = router({
             
             // Call MiniMax API to generate music
             const result = await generateMusic({
-              prompt: input.prompt,
+              prompt: finalPrompt,
               title: input.title,
               style: input.style,
               instrumental: input.instrumental,
