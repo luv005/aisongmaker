@@ -19,6 +19,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { toast } from "sonner";
 
 export default function SongDetail() {
   const { id } = useParams<{ id: string }>();
@@ -193,7 +194,7 @@ export default function SongDetail() {
       } else {
         // Fallback: copy link to clipboard
         await navigator.clipboard.writeText(window.location.href);
-        alert("Link copied to clipboard!");
+        toast.success("Link copied to clipboard!");
       }
     } catch (err) {
       console.error("Error sharing:", err);

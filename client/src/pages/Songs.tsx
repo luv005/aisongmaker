@@ -89,6 +89,28 @@ export default function Songs() {
     document.body.removeChild(a);
   };
 
+  const handleShare = async (trackId: string, title: string) => {
+    const shareUrl = `${window.location.origin}/song/${trackId}`;
+    
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: title || "My Song",
+          text: `Check out my song "${title || "My Song"}" created with AI!`,
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success("Link copied to clipboard!");
+      }
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') {
+        console.error("Error sharing:", err);
+        toast.error("Failed to share");
+      }
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
@@ -217,7 +239,12 @@ export default function Songs() {
                     >
                       <Download className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" variant="ghost" className="h-9 w-9 p-0 rounded-full hover:bg-primary/20">
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-9 w-9 p-0 rounded-full hover:bg-primary/20"
+                      onClick={() => handleShare(track.id, track.title || 'Untitled')}
+                    >
                       <Share2 className="h-4 w-4" />
                     </Button>
                   </>
@@ -336,7 +363,12 @@ export default function Songs() {
                     >
                       <Download className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" variant="ghost" className="h-9 w-9 p-0 rounded-full hover:bg-primary/20">
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-9 w-9 p-0 rounded-full hover:bg-primary/20"
+                      onClick={() => handleShare(cover.id, cover.songTitle || cover.voiceModelName || 'Untitled')}
+                    >
                       <Share2 className="h-4 w-4" />
                     </Button>
                   </>
