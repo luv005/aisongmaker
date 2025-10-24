@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Search, Download, Share2, MoreVertical, Headphones, ThumbsUp, ListMusic, Sparkles, Settings, Play, Pause } from "lucide-react";
+import { Loader2, Search, Download, Share2, MoreVertical, Headphones, ThumbsUp, ListMusic, Sparkles, Settings, Play, Pause, Music } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
@@ -423,62 +423,66 @@ export default function Home() {
           ) : (
             <div className="space-y-4">
               {history.map((track: any) => (
-                <Card 
-                  key={track.id} 
-                  className="p-4 hover:bg-accent/50 transition-colors cursor-pointer"
-                  onClick={() => track.status === "completed" && setLocation(`/song/${track.id}`)}
+                <Card
+                  key={track.id}
+                  className="overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all"
                 >
-                  <div className="flex gap-3">
-                    <div className="relative w-16 h-16 rounded flex-shrink-0">
+                  <div className="flex gap-3 p-3">
+                    {/* Thumbnail with duration overlay */}
+                    <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
                       <div
-                        className="absolute inset-0 rounded flex items-center justify-center"
+                        className="absolute inset-0"
                         style={{
                           background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                         }}
-                      >
-                        <Headphones className="h-6 w-6 text-white" />
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Music className="h-8 w-8 text-white/80" />
                       </div>
+                      {track.status === "completed" && track.duration && (
+                        <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs font-semibold px-2 py-1 rounded">
+                          {Math.floor(track.duration / 60)}:{String(Math.floor(track.duration % 60)).padStart(2, '0')}
+                        </div>
+                      )}
+                      {track.status === "processing" && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                          <Loader2 className="h-6 w-6 text-white animate-spin" />
+                        </div>
+                      )}
                       {track.status === "completed" && track.audioUrl && (
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handlePlay(track);
-                          }}
-                          className="absolute inset-0 bg-black/40 hover:bg-black/60 rounded flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                          onClick={() => handlePlay(track)}
+                          className="absolute inset-0 bg-black/40 hover:bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity group"
                         >
                           {currentTrack?.id === track.id && isPlaying ? (
-                            <Pause className="h-6 w-6 text-white drop-shadow-lg" />
+                            <Pause className="h-8 w-8 text-white drop-shadow-lg" />
                           ) : (
-                            <Play className="h-6 w-6 text-white drop-shadow-lg" />
+                            <Play className="h-8 w-8 text-white drop-shadow-lg" />
                           )}
                         </button>
                       )}
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between mb-1">
-                        <h4 className="font-medium truncate">{track.title}</h4>
-                        <Badge variant="outline" className="text-xs ml-2">
-                          {track.model || "MiniMax"}
+                    {/* Content */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-between">
+                      <div>
+                        <h4 className="font-medium truncate text-sm mb-1">
+                          {track.title || "Untitled"}
+                        </h4>
+                        <Badge variant="outline" className="text-xs">
+                          {track.model || "AI Music"}
                         </Badge>
                       </div>
 
-                      <div className="flex items-center gap-2 mb-2">
-                        <Switch checked={false} className="scale-75" />
-                        <span className="text-xs text-muted-foreground">Publish</span>
-                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Switch checked={false} className="scale-75" />
+                          <span className="text-xs text-muted-foreground">Publish</span>
+                        </div>
 
-                      {track.status === "completed" && track.audioUrl ? (
-                        <div className="space-y-2">
-                          <audio
-                            controls
-                            className="w-full h-8"
-                            style={{ maxHeight: "32px" }}
-                          >
-                            <source src={track.audioUrl} type="audio/mpeg" />
-                          </audio>
+                        {track.status === "completed" && track.audioUrl ? (
                           <div className="flex items-center gap-2 text-muted-foreground">
-                            <button 
+                            <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDownload(track.audioUrl!, `${track.title || 'Untitled'}.mp3`);
@@ -487,32 +491,25 @@ export default function Home() {
                             >
                               <Download className="h-4 w-4" />
                             </button>
-                            <button className="hover:text-foreground transition-colors">
-                              <Share2 className="h-4 w-4" />
+                            <button
+                              onClick={() => handlePlay(track)}
+                              className="flex items-center gap-1 hover:text-foreground transition-colors"
+                            >
+                              <Headphones className="h-4 w-4" />
+                              <span className="text-xs">0</span>
                             </button>
                             <button className="flex items-center gap-1 hover:text-foreground transition-colors">
                               <ThumbsUp className="h-4 w-4" />
                               <span className="text-xs">0</span>
                             </button>
-                            <button className="flex items-center gap-1 hover:text-foreground transition-colors">
-                              <Headphones className="h-4 w-4" />
-                              <span className="text-xs">0</span>
-                            </button>
-                            <button className="ml-auto hover:text-foreground transition-colors">
+                            <button className="hover:text-foreground transition-colors">
                               <MoreVertical className="h-4 w-4" />
                             </button>
                           </div>
-                        </div>
-                      ) : track.status === "processing" ? (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>Generating...</span>
-                        </div>
-                      ) : track.status === "failed" ? (
-                        <div className="text-sm text-destructive">Generation failed</div>
-                      ) : (
-                        <div className="text-sm text-muted-foreground">Pending...</div>
-                      )}
+                        ) : track.status === "failed" ? (
+                          <div className="text-xs text-destructive font-medium">Generation failed</div>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                 </Card>
