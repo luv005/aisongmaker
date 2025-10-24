@@ -86,12 +86,7 @@ export default function Home() {
       return;
     }
 
-    if (selectedSettings.length === 0) {
-      toast.error("Please select at least one setting (Style, Mood, or Scenario)");
-      return;
-    }
-
-    // Description mode: generate lyrics from description first
+    // Description mode: generate lyrics from description first (no settings required)
     if (activeTab === "description") {
       if (!description.trim()) {
         toast.error("Please enter a song description");
@@ -103,12 +98,18 @@ export default function Home() {
       generateMutation.mutate({
         description: description,
         title: songTitle,
-        style: selectedSettings.join(", "),
+        style: selectedSettings.join(", ") || "Pop", // Default to Pop if no settings
         model: "V5",
         customMode,
-        instrumental,
-        gender,
+        instrumental: false, // Description mode always has vocals
+        gender: "random", // Let AI decide gender
       });
+      return;
+    }
+
+    // Lyrics/Audio mode: require settings
+    if (selectedSettings.length === 0) {
+      toast.error("Please select at least one setting (Style, Mood, or Scenario)");
       return;
     }
 
