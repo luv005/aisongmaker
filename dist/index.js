@@ -778,110 +778,156 @@ var imageGenerator_exports = {};
 __export(imageGenerator_exports, {
   generateSongArtwork: () => generateSongArtwork
 });
-import { createCanvas } from "canvas";
-import fs3 from "fs";
-import path3 from "path";
-import crypto from "crypto";
-function stringToColors(str, count = 4) {
-  const hash = crypto.createHash("md5").update(str).digest("hex");
-  const colors = [];
-  for (let i = 0; i < count; i++) {
-    const offset = i * 6;
-    const r = parseInt(hash.substr(offset, 2), 16);
-    const g = parseInt(hash.substr(offset + 2, 2), 16);
-    const b = parseInt(hash.substr(offset + 4, 2), 16);
-    const enhancedR = Math.min(255, Math.floor(r * 1.2));
-    const enhancedG = Math.min(255, Math.floor(g * 1.2));
-    const enhancedB = Math.min(255, Math.floor(b * 1.2));
-    colors.push(`rgb(${enhancedR}, ${enhancedG}, ${enhancedB})`);
-  }
-  return colors;
-}
-function seededRandom(seed, index) {
-  const hash = crypto.createHash("md5").update(seed + index).digest("hex");
-  return parseInt(hash.substr(0, 8), 16) / 4294967295;
-}
+import Replicate2 from "replicate";
 async function generateSongArtwork(options) {
-  const { title, style = "", seed = title } = options;
-  const width = 800;
-  const height = 800;
-  const canvas = createCanvas(width, height);
-  const ctx = canvas.getContext("2d");
-  const seedString = `${title}-${style}-${seed}`;
-  const colors = stringToColors(seedString, 5);
-  const gradientType = Math.floor(seededRandom(seedString, 0) * 3);
-  let gradient;
-  if (gradientType === 0) {
-    const centerX = width * (0.3 + seededRandom(seedString, 1) * 0.4);
-    const centerY = height * (0.3 + seededRandom(seedString, 2) * 0.4);
-    const radius = Math.max(width, height) * 0.8;
-    gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-  } else if (gradientType === 1) {
-    const angle = seededRandom(seedString, 3) * Math.PI * 2;
-    const x1 = width / 2 + Math.cos(angle) * width;
-    const y1 = height / 2 + Math.sin(angle) * height;
-    const x2 = width / 2 - Math.cos(angle) * width;
-    const y2 = height / 2 - Math.sin(angle) * height;
-    gradient = ctx.createLinearGradient(x1, y1, x2, y2);
-  } else {
-    const isVertical = seededRandom(seedString, 4) > 0.5;
-    if (isVertical) {
-      gradient = ctx.createLinearGradient(0, 0, 0, height);
-    } else {
-      gradient = ctx.createLinearGradient(0, 0, width, 0);
-    }
-  }
-  colors.forEach((color, index) => {
-    const stop = index / (colors.length - 1);
-    gradient.addColorStop(stop, color);
-  });
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, width, height);
-  const shapeCount = Math.floor(seededRandom(seedString, 5) * 3) + 2;
-  for (let i = 0; i < shapeCount; i++) {
-    const shapeX = seededRandom(seedString, 10 + i * 4) * width;
-    const shapeY = seededRandom(seedString, 11 + i * 4) * height;
-    const shapeSize = (seededRandom(seedString, 12 + i * 4) * 0.3 + 0.2) * Math.min(width, height);
-    const shapeColor = colors[Math.floor(seededRandom(seedString, 13 + i * 4) * colors.length)];
-    const shapeType = Math.floor(seededRandom(seedString, 14 + i * 4) * 2);
-    ctx.globalAlpha = 0.15;
-    ctx.fillStyle = shapeColor;
-    if (shapeType === 0) {
-      ctx.beginPath();
-      ctx.arc(shapeX, shapeY, shapeSize, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      ctx.beginPath();
-      const points = 8;
-      for (let j = 0; j < points; j++) {
-        const angle = j / points * Math.PI * 2;
-        const radius = shapeSize * (0.7 + seededRandom(seedString, 20 + i * 10 + j) * 0.6);
-        const x = shapeX + Math.cos(angle) * radius;
-        const y = shapeY + Math.sin(angle) * radius;
-        if (j === 0) {
-          ctx.moveTo(x, y);
-        } else {
-          ctx.lineTo(x, y);
+  const { title, style = "" } = options;
+  try {
+    console.log(`[Image Generator] Generating artwork for: "${title}" with style: "${style}"`);
+    const prompt = constructImagePrompt(title, style);
+    console.log(`[Image Generator] Using prompt: "${prompt}"`);
+    const output = await replicate2.run(
+      "black-forest-labs/flux-schnell",
+      {
+        input: {
+          prompt,
+          num_outputs: 1,
+          aspect_ratio: "1:1",
+          output_format: "png",
+          output_quality: 90
         }
       }
-      ctx.closePath();
-      ctx.fill();
+    );
+    console.log("[Image Generator] Replicate output type:", typeof output);
+    console.log("[Image Generator] Replicate raw output:", output);
+    let imageUrl;
+    if (Array.isArray(output) && output.length > 0) {
+      const firstOutput = output[0];
+      if (firstOutput && typeof firstOutput.toString === "function") {
+        const urlString = firstOutput.toString();
+        if (urlString && urlString.startsWith("http")) {
+          imageUrl = urlString;
+        }
+      } else if (firstOutput && typeof firstOutput === "object" && "url" in firstOutput && typeof firstOutput.url === "function") {
+        imageUrl = firstOutput.url();
+      } else if (firstOutput && typeof firstOutput === "object" && "url" in firstOutput && typeof firstOutput.url === "string") {
+        imageUrl = firstOutput.url;
+      } else if (typeof firstOutput === "string") {
+        imageUrl = firstOutput;
+      }
+    } else if (typeof output === "string") {
+      imageUrl = output;
+    } else if (output && typeof output === "object") {
+      if (typeof output.toString === "function") {
+        const urlString = output.toString();
+        if (urlString && urlString.startsWith("http")) {
+          imageUrl = urlString;
+        }
+      }
+      if (!imageUrl && "url" in output) {
+        if (typeof output.url === "function") {
+          imageUrl = output.url();
+        } else if (typeof output.url === "string") {
+          imageUrl = output.url;
+        }
+      }
+    }
+    console.log("[Image Generator] Extracted URL:", imageUrl);
+    if (!imageUrl || typeof imageUrl !== "string" || !imageUrl.startsWith("http")) {
+      console.error("[Image Generator] Failed to extract valid image URL from output:", output);
+      return void 0;
+    }
+    console.log(`[Image Generator] Successfully generated artwork: ${imageUrl}`);
+    return imageUrl;
+  } catch (error) {
+    console.error("[Image Generator] Error generating artwork:", error);
+    return void 0;
+  }
+}
+function constructImagePrompt(title, style) {
+  const basePrompt = "album cover art, professional music artwork, high quality, artistic";
+  const cleanTitle = title.trim();
+  const styleKeywords = style.toLowerCase().split(",").map((s) => s.trim()).filter((s) => s.length > 0);
+  let prompt = `${basePrompt}, inspired by "${cleanTitle}"`;
+  if (styleKeywords.length > 0) {
+    const visualStyles = styleKeywords.map((keyword) => getVisualStyleForMusicGenre(keyword)).filter(Boolean).join(", ");
+    if (visualStyles) {
+      prompt += `, ${visualStyles}`;
     }
   }
-  ctx.globalAlpha = 1;
-  const filename = `song-${crypto.createHash("md5").update(seedString).digest("hex")}.png`;
-  const outputDir = path3.join(process.cwd(), "dist", "public", "artwork");
-  if (!fs3.existsSync(outputDir)) {
-    fs3.mkdirSync(outputDir, { recursive: true });
-  }
-  const outputPath = path3.join(outputDir, filename);
-  const buffer = canvas.toBuffer("image/png");
-  fs3.writeFileSync(outputPath, buffer);
-  return `/artwork/${filename}`;
+  prompt += ", vibrant colors, modern design, eye-catching, professional photography";
+  return prompt;
 }
+function getVisualStyleForMusicGenre(genre) {
+  const genreMap = {
+    // Genres
+    "pop": "colorful, bright, energetic, contemporary",
+    "rock": "bold, edgy, dramatic lighting, powerful",
+    "jazz": "sophisticated, moody, noir aesthetic, elegant",
+    "classical": "elegant, timeless, refined, orchestral",
+    "electronic": "futuristic, neon lights, digital art, cyberpunk",
+    "hip hop": "urban, street art, bold typography, modern",
+    "rap": "urban, street style, bold, contemporary",
+    "country": "rustic, warm tones, americana, natural",
+    "blues": "moody, vintage, soulful, atmospheric",
+    "metal": "dark, intense, dramatic, powerful",
+    "folk": "natural, organic, earthy tones, acoustic",
+    "indie": "artistic, alternative, creative, unique",
+    "r&b": "smooth, sophisticated, soulful, stylish",
+    "soul": "warm, emotional, vintage aesthetic, groovy",
+    "funk": "groovy, colorful, retro, vibrant",
+    "disco": "glittery, retro, colorful, dance floor",
+    "reggae": "tropical, warm colors, relaxed, island vibes",
+    "punk": "rebellious, raw, DIY aesthetic, bold",
+    "edm": "neon, energetic, festival vibes, electric",
+    "house": "club aesthetic, neon lights, energetic, modern",
+    "techno": "industrial, minimal, futuristic, dark",
+    "ambient": "atmospheric, dreamy, ethereal, peaceful",
+    "trap": "urban, modern, bold, street style",
+    "dubstep": "dark, bass-heavy aesthetic, futuristic, intense",
+    // Moods
+    "happy": "bright, cheerful, uplifting, sunny",
+    "sad": "melancholic, blue tones, emotional, moody",
+    "energetic": "dynamic, vibrant, action-packed, lively",
+    "calm": "peaceful, serene, soft colors, tranquil",
+    "romantic": "dreamy, soft focus, warm lighting, intimate",
+    "dark": "noir, shadows, mysterious, dramatic",
+    "uplifting": "bright, inspiring, hopeful, radiant",
+    "melancholic": "moody, atmospheric, emotional, somber",
+    "aggressive": "intense, powerful, bold, dramatic",
+    "chill": "relaxed, cool tones, laid-back, smooth",
+    "dramatic": "theatrical, intense lighting, powerful, epic",
+    "mysterious": "enigmatic, shadows, intriguing, dark",
+    "nostalgic": "vintage, retro, warm tones, memories",
+    "dreamy": "ethereal, soft focus, surreal, floating",
+    // Scenarios
+    "party": "festive, colorful, energetic, celebration",
+    "workout": "dynamic, powerful, motivating, intense",
+    "study": "focused, calm, minimal, peaceful",
+    "sleep": "peaceful, dark blue, dreamy, tranquil",
+    "driving": "road trip, freedom, open road, adventure",
+    "beach": "tropical, sunny, ocean vibes, relaxed",
+    "night": "nocturnal, city lights, mysterious, atmospheric",
+    "morning": "sunrise, fresh, bright, new beginnings",
+    "rain": "moody, atmospheric, water droplets, cozy",
+    "sunset": "golden hour, warm colors, beautiful, peaceful"
+  };
+  if (genreMap[genre]) {
+    return genreMap[genre];
+  }
+  for (const [key, value] of Object.entries(genreMap)) {
+    if (genre.includes(key) || key.includes(genre)) {
+      return value;
+    }
+  }
+  return "";
+}
+var replicate2;
 var init_imageGenerator = __esm({
   "server/_core/imageGenerator.ts"() {
     "use strict";
+    replicate2 = new Replicate2({
+      auth: process.env.REPLICATE_API_TOKEN
+    });
   }
 });
 
@@ -890,7 +936,7 @@ var llm_exports = {};
 __export(llm_exports, {
   invokeLLM: () => invokeLLM
 });
-import Replicate2 from "replicate";
+import Replicate3 from "replicate";
 async function invokeLLM(params) {
   const canUseForge = ENV.forgeFeaturesEnabled && !!ENV.forgeApiKey;
   if (canUseForge) {
@@ -989,7 +1035,7 @@ var init_llm = __esm({
     };
     resolveApiUrl = () => ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0 ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions` : "https://forge.manus.im/v1/chat/completions";
     OPENAI_CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions";
-    replicateClient = process.env.REPLICATE_API_TOKEN && process.env.REPLICATE_API_TOKEN.length > 0 ? new Replicate2({ auth: process.env.REPLICATE_API_TOKEN }) : null;
+    replicateClient = process.env.REPLICATE_API_TOKEN && process.env.REPLICATE_API_TOKEN.length > 0 ? new Replicate3({ auth: process.env.REPLICATE_API_TOKEN }) : null;
     normalizeResponseFormat = ({
       responseFormat,
       response_format,
@@ -1307,7 +1353,7 @@ __export(vite_config_exports, {
 import { jsxLocPlugin } from "@builder.io/vite-plugin-jsx-loc";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import path4 from "node:path";
+import path3 from "node:path";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
 import { defineConfig } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
@@ -1315,8 +1361,8 @@ var currentDir2, resolveFromRoot, plugins, vite_config_default;
 var init_vite_config = __esm({
   "vite.config.ts"() {
     "use strict";
-    currentDir2 = path4.dirname(fileURLToPath2(import.meta.url));
-    resolveFromRoot = (...segments) => path4.resolve(currentDir2, ...segments);
+    currentDir2 = path3.dirname(fileURLToPath2(import.meta.url));
+    resolveFromRoot = (...segments) => path3.resolve(currentDir2, ...segments);
     plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime()];
     vite_config_default = defineConfig({
       plugins,
@@ -2057,8 +2103,8 @@ async function downloadYouTubeAudio(youtubeUrl) {
     try {
       console.log(`[YouTube] Trying strategy ${i + 1}/${strategies.length}`);
       await execAsync(strategies[i], { timeout: 12e4 });
-      const fs5 = await import("fs/promises");
-      await fs5.access(tempFile);
+      const fs4 = await import("fs/promises");
+      await fs4.access(tempFile);
       console.log(`[YouTube] Strategy ${i + 1} succeeded`);
       break;
     } catch (error) {
@@ -2067,14 +2113,14 @@ async function downloadYouTubeAudio(youtubeUrl) {
     }
   }
   try {
-    const fs5 = await import("fs/promises");
-    await fs5.access(tempFile);
+    const fs4 = await import("fs/promises");
+    await fs4.access(tempFile);
   } catch {
     throw new Error(`Failed to download YouTube audio after trying all strategies: ${lastError?.message || "Unknown error"}`);
   }
   try {
-    const fs5 = await import("fs/promises");
-    const audioBuffer = await fs5.readFile(tempFile);
+    const fs4 = await import("fs/promises");
+    const audioBuffer = await fs4.readFile(tempFile);
     const s3Key = `voice-covers/input-${tempId}.mp3`;
     const result = await storagePut(s3Key, audioBuffer, "audio/mpeg");
     await unlink2(tempFile);
@@ -2516,13 +2562,13 @@ async function createContext(opts) {
 
 // server/_core/vite.ts
 import express from "express";
-import fs4 from "fs";
+import fs3 from "fs";
 import { nanoid as nanoid4 } from "nanoid";
-import path5 from "path";
+import path4 from "path";
 import cryptoNative from "node:crypto";
 import { fileURLToPath as fileURLToPath3 } from "node:url";
-var currentDir3 = path5.dirname(fileURLToPath3(import.meta.url));
-var resolveFromRoot2 = (...segments) => path5.resolve(currentDir3, ...segments);
+var currentDir3 = path4.dirname(fileURLToPath3(import.meta.url));
+var resolveFromRoot2 = (...segments) => path4.resolve(currentDir3, ...segments);
 var normalizeHashInput = (input) => {
   if (typeof input === "string") return input;
   if (ArrayBuffer.isView(input)) {
@@ -2577,7 +2623,7 @@ async function setupVite(app, server) {
           return next();
         }
         const clientTemplate = resolveFromRoot2("..", "..", "client", "index.html");
-        let template = await fs4.promises.readFile(clientTemplate, "utf-8");
+        let template = await fs3.promises.readFile(clientTemplate, "utf-8");
         template = template.replace(
           `src="/src/main.tsx"`,
           `src="/src/main.tsx?v=${nanoid4()}"`
@@ -2598,14 +2644,14 @@ async function setupVite(app, server) {
 }
 function serveStatic(app) {
   const distPath = process.env.NODE_ENV === "development" ? resolveFromRoot2("..", "..", "dist", "public") : resolveFromRoot2("public");
-  if (!fs4.existsSync(distPath)) {
+  if (!fs3.existsSync(distPath)) {
     console.error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
   app.use(express.static(distPath));
   app.use("*", (_req, res) => {
-    res.sendFile(path5.resolve(distPath, "index.html"));
+    res.sendFile(path4.resolve(distPath, "index.html"));
   });
 }
 
