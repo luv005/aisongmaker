@@ -2218,18 +2218,55 @@ var appRouter = router({
       const trackId = `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       let finalPrompt = input.prompt || "";
       if (input.description && !input.prompt) {
-        console.log(`[Music Generation] Generating lyrics from description for ${trackId}`);
+        console.log(`[Music Generation] Generating title, style, and lyrics from description for ${trackId}`);
         try {
           const { invokeLLM: invokeLLM2 } = await Promise.resolve().then(() => (init_llm(), llm_exports));
+          const metadataPrompt = `Based on this song description, generate a suitable title and music style:
+
+Description: "${input.description}"
+
+Provide your response in this exact JSON format:
+{
+  "title": "A catchy, memorable song title (3-5 words)",
+  "style": "Primary music genre/style (e.g., Pop, Rock, Jazz, Electronic, etc.)"
+}`;
+          const metadataResponse = await invokeLLM2({
+            messages: [
+              {
+                role: "system",
+                content: "You are a music expert who analyzes song descriptions and suggests appropriate titles and styles. Always respond with valid JSON."
+              },
+              {
+                role: "user",
+                content: metadataPrompt
+              }
+            ]
+          });
+          let extractedTitle = input.title;
+          let extractedStyle = input.style || "Pop";
+          try {
+            const metadataContent = metadataResponse.choices[0]?.message?.content || "";
+            const jsonMatch = metadataContent.match(/\{[^}]+\}/);
+            if (jsonMatch) {
+              const metadata = JSON.parse(jsonMatch[0]);
+              extractedTitle = metadata.title || input.title;
+              extractedStyle = metadata.style || input.style || "Pop";
+            }
+          } catch (parseError) {
+            console.warn(`[Music Generation] Failed to parse metadata JSON, using defaults`);
+          }
+          console.log(`[Music Generation] Extracted title: "${extractedTitle}", style: "${extractedStyle}"`);
+          input.title = extractedTitle;
+          input.style = extractedStyle;
           const lyricsPrompt = `Generate creative and engaging song lyrics based on this description: "${input.description}"
 
-Style: ${input.style}
-${input.instrumental ? "Note: This will be an instrumental track, so keep lyrics minimal or optional." : ""}
+Title: ${extractedTitle}
+Style: ${extractedStyle}
 
 Generate complete song lyrics with proper structure including [Intro], [Verse], [Chorus], [Bridge], etc. tags.
-Make the lyrics emotional, memorable, and suitable for the style.
+Make the lyrics emotional, memorable, and suitable for the ${extractedStyle} style.
 Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes (about ${MAX_LYRIC_WORDS} words).`;
-          const response = await invokeLLM2({
+          const lyricsResponse = await invokeLLM2({
             messages: [
               {
                 role: "system",
@@ -2241,12 +2278,12 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
               }
             ]
           });
-          const generatedLyrics = response.choices[0]?.message?.content || "";
+          const generatedLyrics = lyricsResponse.choices[0]?.message?.content || "";
           finalPrompt = trimLyrics(generatedLyrics);
           console.log(`[Music Generation] Generated lyrics for ${trackId}:`, finalPrompt.substring(0, 200) + "...");
         } catch (error) {
-          console.error(`[Music Generation] Failed to generate lyrics from description:`, error);
-          throw new Error("Failed to generate lyrics from description. Please try again or use the Lyrics tab.");
+          console.error(`[Music Generation] Failed to generate from description:`, error);
+          throw new Error("Failed to generate song from description. Please try again or use the Lyrics tab.");
         }
       }
       let imageUrl;

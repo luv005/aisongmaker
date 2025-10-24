@@ -271,65 +271,70 @@ export default function Home() {
       <div className="flex-1 overflow-hidden flex">
         {/* Left Panel - Music Creation */}
         <div className="flex-1 overflow-y-auto p-6 pb-24 space-y-6">
-          {/* Settings Button */}
-          <div>
-            <Label className="text-sm font-medium mb-2 flex items-center gap-2">
-              Settings
-            </Label>
-            <Button
-              variant="outline"
-              className="w-full justify-between text-left h-auto py-3"
-              onClick={() => setSettingsOpen(true)}
-            >
-              <span className="text-sm text-muted-foreground truncate">
-                {getSettingsSummary()}
-              </span>
-              <Settings className="h-4 w-4 ml-2 flex-shrink-0" />
-            </Button>
-            {(musicSettings.style || musicSettings.mood || musicSettings.scenario) && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {musicSettings.style && (
-                  <Badge variant="secondary">{musicSettings.style}</Badge>
-                )}
-                {musicSettings.mood && (
-                  <Badge variant="secondary">{musicSettings.mood}</Badge>
-                )}
-                {musicSettings.scenario && (
-                  <Badge variant="secondary">{musicSettings.scenario}</Badge>
+          {/* Settings, Instrumental, Title - Hidden in Description tab */}
+          {activeTab !== "description" && (
+            <>
+              {/* Settings Button */}
+              <div>
+                <Label className="text-sm font-medium mb-2 flex items-center gap-2">
+                  Settings
+                </Label>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between text-left h-auto py-3"
+                  onClick={() => setSettingsOpen(true)}
+                >
+                  <span className="text-sm text-muted-foreground truncate">
+                    {getSettingsSummary()}
+                  </span>
+                  <Settings className="h-4 w-4 ml-2 flex-shrink-0" />
+                </Button>
+                {(musicSettings.style || musicSettings.mood || musicSettings.scenario) && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {musicSettings.style && (
+                      <Badge variant="secondary">{musicSettings.style}</Badge>
+                    )}
+                    {musicSettings.mood && (
+                      <Badge variant="secondary">{musicSettings.mood}</Badge>
+                    )}
+                    {musicSettings.scenario && (
+                      <Badge variant="secondary">{musicSettings.scenario}</Badge>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-          </div>
 
-          {/* Instrumental Toggle */}
-          <div className="flex items-center justify-between">
-            <Label htmlFor="instrumental" className="text-sm font-medium">
-              Instrumental
-            </Label>
-            <Switch
-              id="instrumental"
-              checked={instrumental}
-              onCheckedChange={setInstrumental}
-            />
-          </div>
+              {/* Instrumental Toggle */}
+              <div className="flex items-center justify-between">
+                <Label htmlFor="instrumental" className="text-sm font-medium">
+                  Instrumental
+                </Label>
+                <Switch
+                  id="instrumental"
+                  checked={instrumental}
+                  onCheckedChange={setInstrumental}
+                />
+              </div>
 
-          {/* Title */}
-          <div>
-            <Label htmlFor="title" className="text-sm font-medium mb-2 block">
-              Title (Optional)
-            </Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter your title"
-              maxLength={80}
-              className="bg-background"
-            />
-            <div className="text-xs text-muted-foreground mt-1 text-right">
-              {title.length} / 80
-            </div>
-          </div>
+              {/* Title */}
+              <div>
+                <Label htmlFor="title" className="text-sm font-medium mb-2 block">
+                  Title (Optional)
+                </Label>
+                <Input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter your title"
+                  maxLength={80}
+                  className="bg-background"
+                />
+                <div className="text-xs text-muted-foreground mt-1 text-right">
+                  {title.length} / 80
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Lyrics Tab */}
           {activeTab === "lyrics" && (
@@ -436,36 +441,38 @@ export default function Home() {
             </div>
           )}
 
-          {/* Gender */}
-          <div>
-            <Label className="text-sm font-medium mb-2 block">Gender</Label>
-            <div className="flex gap-2">
-              <Button
-                variant={gender === "m" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setGender("m")}
-                className="flex-1"
-              >
-                Male
-              </Button>
-              <Button
-                variant={gender === "f" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setGender("f")}
-                className="flex-1"
-              >
-                Female
-              </Button>
-              <Button
-                variant={gender === "random" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setGender("random")}
-                className="flex-1"
-              >
-                Random
-              </Button>
+          {/* Gender - Hidden in Description tab */}
+          {activeTab !== "description" && (
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Gender</Label>
+              <div className="flex gap-2">
+                <Button
+                  variant={gender === "m" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setGender("m")}
+                  className="flex-1"
+                >
+                  Male
+                </Button>
+                <Button
+                  variant={gender === "f" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setGender("f")}
+                  className="flex-1"
+                >
+                  Female
+                </Button>
+                <Button
+                  variant={gender === "random" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setGender("random")}
+                  className="flex-1"
+                >
+                  Random
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Generate Button */}
           <Button
