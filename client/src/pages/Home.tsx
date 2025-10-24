@@ -234,7 +234,7 @@ export default function Home() {
             }`}
             onClick={() => setActiveTab("lyrics")}
           >
-            Lyrics
+            Lyrics to Song
           </button>
           <button
             className={`px-4 py-2 text-sm font-medium transition-colors ${
@@ -244,7 +244,7 @@ export default function Home() {
             }`}
             onClick={() => setActiveTab("description")}
           >
-            Description
+            Text to Song
           </button>
         </div>
 
