@@ -63,9 +63,17 @@ export default function AICover() {
         onClick={() => setLocation(`/ai-cover/${voice.id}`)}
       >
         <div className="relative aspect-square bg-gradient-to-br from-purple-500/20 to-pink-500/20">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-6xl">🎤</div>
-          </div>
+          {voice.avatarUrl ? (
+            <img
+              src={voice.avatarUrl}
+              alt={voice.name}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-6xl">🎤</div>
+            </div>
+          )}
           {index !== undefined && (
             <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
               #{index + 1}
