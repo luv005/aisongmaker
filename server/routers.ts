@@ -543,9 +543,13 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
         await createVoiceCover(coverData);
 
         // Start voice conversion in background
-        (async () => {
+        console.log(`[Voice Cover] Scheduling background conversion for ${coverId}`);
+        const backgroundTask = (async () => {
           try {
             console.log(`[Voice Cover] Starting background conversion for ${coverId}`);
+            console.log(`[Voice Cover] Audio URL: ${processedAudioUrl}`);
+            console.log(`[Voice Cover] Voice Model: ${getReplicateModelName(voiceModel.id)}`);
+            console.log(`[Voice Cover] Pitch Change: ${input.pitchChange}`);
             
             const result = await convertVoice({
               songInput: processedAudioUrl,
@@ -586,8 +590,11 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
               console.error(`[Voice Cover] Failed to update error status for ${coverId}:`, updateError);
             }
           }
-        })().catch(err => {
+        })();
+        
+        backgroundTask.catch(err => {
           console.error(`[Voice Cover] Unhandled error in background process for ${coverId}:`, err);
+          console.error(`[Voice Cover] Error stack:`, err.stack);
         });
 
         return {
