@@ -182,22 +182,12 @@ export default function SongDetail() {
   const handleShare = async () => {
     if (!song) return;
     
-    const shareData = {
-      title: song.title || "My Song",
-      text: `Check out my song "${song.title || "My Song"}" created with AI!`,
-      url: window.location.href,
-    };
-
     try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        // Fallback: copy link to clipboard
-        await navigator.clipboard.writeText(window.location.href);
-        toast.success("Link copied to clipboard!");
-      }
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success("Copied successfully!");
     } catch (err) {
-      console.error("Error sharing:", err);
+      console.error("Error copying link:", err);
+      toast.error("Failed to copy link");
     }
   };
 
