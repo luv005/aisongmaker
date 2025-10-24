@@ -8,6 +8,7 @@ import { AudioPlayerProvider } from "./contexts/AudioPlayerContext";
 import Layout from "./components/Layout";
 import { GlobalMusicPlayer } from "./components/GlobalMusicPlayer";
 import Home from "./pages/Home";
+import Landing from "./pages/Landing";
 import AICover from "./pages/AICover";
 import VoiceCoverCreate from "./pages/VoiceCoverCreate";
 import SongDetail from "./pages/SongDetail";
@@ -17,7 +18,7 @@ import Subscription from "./pages/Subscription";
 function Router() {
   return (
     <Layout>
-      <Switch>        <Route path={"/"} component={Home} />
+      <Switch>        <Route path={"/"} component={Landing} />
         <Route path={"/song/:id"} component={SongDetail} />
         <Route path={"/featured"} component={Home} />
         <Route path="/ai-cover" component={AICover} />
