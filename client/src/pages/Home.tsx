@@ -86,6 +86,13 @@ export default function Home() {
       return;
     }
 
+    // Extract selected settings
+    const selectedSettings = [
+      musicSettings.style,
+      musicSettings.mood,
+      musicSettings.scenario,
+    ].filter(Boolean);
+
     // Description mode: generate lyrics from description first (no settings required)
     if (activeTab === "description") {
       if (!description.trim()) {
