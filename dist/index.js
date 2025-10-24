@@ -51,6 +51,7 @@ var init_schema = __esm({
       voiceModelId: varchar("voiceModelId", { length: 64 }).notNull(),
       voiceModelName: varchar("voiceModelName", { length: 128 }).notNull(),
       songTitle: varchar("songTitle", { length: 256 }),
+      avatarUrl: text("avatarUrl"),
       originalAudioUrl: text("originalAudioUrl"),
       convertedAudioUrl: text("convertedAudioUrl"),
       status: mysqlEnum("status", ["processing", "completed", "failed"]).default("processing").notNull(),
@@ -2534,6 +2535,7 @@ ${lyrics}`
         userId,
         voiceModelId: input.voiceModelId,
         voiceModelName: voiceModel.name,
+        avatarUrl: voiceModel.avatarUrl,
         originalAudioUrl: processedAudioUrl,
         status: "processing",
         pitchChange: input.pitchChange || "no-change"

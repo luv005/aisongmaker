@@ -75,6 +75,7 @@ export default function Songs() {
         title: cover.songTitle || cover.voiceModelName,
         artist: cover.voiceModelName,
         audioUrl: cover.convertedAudioUrl,
+        thumbnailUrl: cover.avatarUrl,
       });
     }
   };
@@ -309,8 +310,16 @@ export default function Songs() {
           >
             <div className="flex items-start gap-4">
               <div className="relative flex-shrink-0">
-                <div className="w-24 h-24 gradient-card rounded-2xl flex items-center justify-center">
-                  <Mic2 className="h-10 w-10 text-primary" />
+                <div className="w-24 h-24 gradient-card rounded-2xl flex items-center justify-center overflow-hidden">
+                  {cover.avatarUrl ? (
+                    <img
+                      src={cover.avatarUrl}
+                      alt={cover.voiceModelName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Mic2 className="h-10 w-10 text-primary" />
+                  )}
                 </div>
                 {cover.status === "completed" && cover.convertedAudioUrl && (
                   <Button

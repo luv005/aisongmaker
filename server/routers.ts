@@ -529,6 +529,7 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
           userId: userId,
           voiceModelId: input.voiceModelId,
           voiceModelName: voiceModel.name,
+          avatarUrl: voiceModel.avatarUrl,
           originalAudioUrl: processedAudioUrl,
           status: "processing" as const,
           pitchChange: input.pitchChange || "no-change",

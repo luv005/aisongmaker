@@ -46,6 +46,7 @@ export const voiceCovers = mysqlTable("voice_covers", {
   voiceModelId: varchar("voiceModelId", { length: 64 }).notNull(),
   voiceModelName: varchar("voiceModelName", { length: 128 }).notNull(),
   songTitle: varchar("songTitle", { length: 256 }),
+  avatarUrl: text("avatarUrl"),
   originalAudioUrl: text("originalAudioUrl"),
   convertedAudioUrl: text("convertedAudioUrl"),
   status: mysqlEnum("status", ["processing", "completed", "failed"]).default("processing").notNull(),
