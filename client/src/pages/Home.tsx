@@ -481,12 +481,9 @@ export default function Home() {
                     {/* Content */}
                     <div className="flex-1 min-w-0 flex flex-col justify-between">
                       <div>
-                        <h4 className="font-medium truncate text-sm mb-1">
+                        <h4 className="font-medium truncate text-sm">
                           {track.title || "Untitled"}
                         </h4>
-                        <Badge variant="outline" className="text-xs">
-                          {track.model || "AI Music"}
-                        </Badge>
                       </div>
 
                       <div className="flex items-center justify-between">
