@@ -8,15 +8,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Search, Download, Share2, MoreVertical, Headphones, ThumbsUp, ListMusic, Sparkles, Settings } from "lucide-react";
+import { Loader2, Search, Download, Share2, MoreVertical, Headphones, ThumbsUp, ListMusic, Sparkles, Settings, Play, Pause } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import MusicSettings, { MusicSettingsData } from "@/components/MusicSettings";
+import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
+  const { playTrack, currentTrack, isPlaying, togglePlayPause } = useAudioPlayer();
   const [title, setTitle] = useState("");
   const [prompt, setPrompt] = useState("");
   const [musicSettings, setMusicSettings] = useState<MusicSettingsData>({
@@ -62,6 +64,20 @@ export default function Home() {
   );
 
   const utils = trpc.useUtils();
+
+  const handlePlay = (track: any) => {
+    if (currentTrack?.id === track.id && isPlaying) {
+      togglePlayPause();
+    } else {
+      playTrack({
+        id: track.id,
+        title: track.title || 'Untitled',
+        artist: 'AI Music',
+        audioUrl: track.audioUrl,
+        thumbnailUrl: track.imageUrl,
+      });
+    }
+  };
 
   const handleGenerate = () => {
     if (!isAuthenticated) {
@@ -413,13 +429,30 @@ export default function Home() {
                   onClick={() => track.status === "completed" && setLocation(`/song/${track.id}`)}
                 >
                   <div className="flex gap-3">
-                    <div
-                      className="w-16 h-16 rounded flex-shrink-0 flex items-center justify-center"
-                      style={{
-                        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                      }}
-                    >
-                      <Headphones className="h-6 w-6 text-white" />
+                    <div className="relative w-16 h-16 rounded flex-shrink-0">
+                      <div
+                        className="absolute inset-0 rounded flex items-center justify-center"
+                        style={{
+                          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        }}
+                      >
+                        <Headphones className="h-6 w-6 text-white" />
+                      </div>
+                      {track.status === "completed" && track.audioUrl && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePlay(track);
+                          }}
+                          className="absolute inset-0 bg-black/40 hover:bg-black/60 rounded flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                        >
+                          {currentTrack?.id === track.id && isPlaying ? (
+                            <Pause className="h-6 w-6 text-white drop-shadow-lg" />
+                          ) : (
+                            <Play className="h-6 w-6 text-white drop-shadow-lg" />
+                          )}
+                        </button>
+                      )}
                     </div>
 
                     <div className="flex-1 min-w-0">

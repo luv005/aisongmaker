@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Upload, Heart, Users, Share2, Youtube, Loader2, Search, Download, ThumbsUp, Headphones, MoreVertical, Mic2 } from "lucide-react";
+import { Upload, Heart, Users, Share2, Youtube, Loader2, Search, Download, ThumbsUp, Headphones, MoreVertical, Mic2, Play, Pause } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useAudioPlayer } from "@/contexts/AudioPlayerContext";
@@ -474,6 +474,18 @@ export default function VoiceCoverCreate() {
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                           <Loader2 className="h-6 w-6 text-white animate-spin" />
                         </div>
+                      )}
+                      {cover.status === "completed" && cover.convertedAudioUrl && (
+                        <button
+                          onClick={() => handlePlay(cover)}
+                          className="absolute inset-0 bg-black/40 hover:bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity group"
+                        >
+                          {currentTrack?.id === cover.id && isPlaying ? (
+                            <Pause className="h-8 w-8 text-white drop-shadow-lg" />
+                          ) : (
+                            <Play className="h-8 w-8 text-white drop-shadow-lg" />
+                          )}
+                        </button>
                       )}
                     </div>
 

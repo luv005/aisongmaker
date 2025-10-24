@@ -1018,7 +1018,9 @@ var init_llm = __esm({
     };
     buildFallbackLyrics = (messages) => {
       const prompt = extractUserPrompt(messages);
-      const topic = prompt.split(/\s+/).slice(0, 12).join(" ").trim() || "this moment";
+      const styleMatch = prompt.match(/in the (\w+) style/i);
+      const style = styleMatch ? styleMatch[1] : "music";
+      const topic = style.toLowerCase();
       const hook = topic.charAt(0).toUpperCase().concat(topic.slice(1));
       return [
         "[Intro]",
@@ -2146,7 +2148,7 @@ var appRouter = router({
         throw new Error("Lyrics generation is not configured.");
       }
       const { invokeLLM: invokeLLM2 } = await Promise.resolve().then(() => (init_llm(), llm_exports));
-      const prompt = `You are a professional songwriter. Generate creative and engaging song lyrics in the ${input.style} style.${input.title ? ` The song title is "${input.title}".` : ""}${input.mood ? ` The mood/theme should be: ${input.mood}` : ""}
+      const prompt = `Generate creative and engaging song lyrics in the ${input.style} style.${input.title ? ` The song title is "${input.title}".` : ""}${input.mood ? ` The mood/theme should be: ${input.mood}` : ""}
 
 Generate complete song lyrics with proper structure including [Intro], [Verse], [Chorus], [Bridge], etc. tags.
 Make the lyrics emotional, memorable, and suitable for the ${input.style} genre.
@@ -2154,6 +2156,8 @@ ${input.title ? "" : "Also suggest a catchy title for the song."}
 Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes (about ${MAX_LYRIC_WORDS} words). Keep sections concise and avoid overly long verses.`;
       const songwriterSystemPrompt = "You are a professional songwriter who creates engaging, emotional, and memorable lyrics.";
       try {
+        console.log("[Lyrics Generation] System prompt:", songwriterSystemPrompt);
+        console.log("[Lyrics Generation] User prompt:", prompt);
         const response = await invokeLLM2({
           messages: [
             {
@@ -2166,6 +2170,7 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
             }
           ]
         });
+        console.log("[Lyrics Generation] Raw response:", response.choices[0]?.message?.content);
         const content = response.choices[0]?.message?.content;
         const contentText = typeof content === "string" ? content : "";
         let generatedTitle = input.title;
@@ -2176,6 +2181,13 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
           }
         }
         let lyrics = contentText.replace(/Title:\s*["']?[^"'\n]+["']?\n*/i, "").trim();
+        console.log("[Lyrics Generation] Before sanitization:", lyrics.substring(0, 200));
+        lyrics = lyrics.replace(/You are a professional songwriter\.?\s*Generate creative and engaging song lyrics in\s*/gi, "");
+        lyrics = lyrics.replace(/You are a professional songwriter\.?\s*/gi, "");
+        lyrics = lyrics.replace(/Generate creative and engaging song lyrics in\s*/gi, "");
+        lyrics = lyrics.replace(/\n\s*\n\s*\n/g, "\n\n");
+        lyrics = lyrics.trim();
+        console.log("[Lyrics Generation] After sanitization:", lyrics.substring(0, 200));
         let wordCount = countWords(lyrics);
         if (wordCount > MAX_LYRIC_WORDS) {
           try {
@@ -2511,6 +2523,26 @@ async function startServer() {
   app.use(express2.json({ limit: "50mb" }));
   app.use(express2.urlencoded({ limit: "50mb", extended: true }));
   registerOAuthRoutes(app);
+  app.get("/api/download", async (req, res) => {
+    try {
+      const { url, filename } = req.query;
+      if (!url || typeof url !== "string") {
+        return res.status(400).send("Missing url parameter");
+      }
+      const response = await fetch(url);
+      if (!response.ok) {
+        return res.status(response.status).send("Failed to fetch audio");
+      }
+      const buffer = await response.arrayBuffer();
+      const fileName = filename && typeof filename === "string" ? filename : "audio.mp3";
+      res.setHeader("Content-Type", "audio/mpeg");
+      res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+      res.send(Buffer.from(buffer));
+    } catch (error) {
+      console.error("Download proxy error:", error);
+      res.status(500).send("Download failed");
+    }
+  });
   app.use(
     "/api/trpc",
     createExpressMiddleware({
