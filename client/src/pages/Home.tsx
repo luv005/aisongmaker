@@ -431,15 +431,25 @@ export default function Home() {
                   <div className="flex gap-3 p-3">
                     {/* Thumbnail with duration overlay */}
                     <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
-                      <div
-                        className="absolute inset-0"
-                        style={{
-                          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                        }}
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Music className="h-8 w-8 text-white/80" />
-                      </div>
+                      {track.imageUrl ? (
+                        <img
+                          src={track.imageUrl}
+                          alt={track.title || "Song artwork"}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                      ) : (
+                        <>
+                          <div
+                            className="absolute inset-0"
+                            style={{
+                              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                            }}
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Music className="h-8 w-8 text-white/80" />
+                          </div>
+                        </>
+                      )}
                       {track.status === "completed" && track.duration && (
                         <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs font-semibold px-2 py-1 rounded">
                           {Math.floor(track.duration / 60)}:{String(Math.floor(track.duration % 60)).padStart(2, '0')}

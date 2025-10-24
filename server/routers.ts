@@ -107,8 +107,22 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const { createMusicTrack, updateMusicTrack } = await import("./db.js");
         const { generateMusic, pollTaskCompletion } = await import("./minimaxApi.js");
+        const { generateSongArtwork } = await import("./_core/imageGenerator.js");
         
         const trackId = `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Generate artwork for the song
+        let imageUrl: string | undefined;
+        try {
+          imageUrl = await generateSongArtwork({
+            title: input.title || "Untitled",
+            style: input.style,
+            seed: trackId,
+          });
+          console.log(`[Music Generation] Generated artwork for ${trackId}: ${imageUrl}`);
+        } catch (error) {
+          console.error(`[Music Generation] Failed to generate artwork for ${trackId}:`, error);
+        }
         
         // Create initial track record
         await createMusicTrack({
@@ -119,6 +133,7 @@ export const appRouter = router({
           style: input.style,
           model: input.model,
           instrumental: input.instrumental ? "yes" : "no",
+          imageUrl,
           status: "pending",
         });
 

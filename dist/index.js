@@ -41,6 +41,7 @@ var init_schema = __esm({
       instrumental: mysqlEnum("instrumental", ["yes", "no"]).default("no"),
       audioUrl: text("audioUrl"),
       streamUrl: text("streamUrl"),
+      imageUrl: text("imageUrl"),
       status: mysqlEnum("status", ["pending", "processing", "completed", "failed"]).default("pending").notNull(),
       createdAt: timestamp("createdAt").defaultNow()
     });
@@ -768,6 +769,118 @@ var init_minimaxApi = __esm({
   }
 });
 
+// server/_core/imageGenerator.ts
+var imageGenerator_exports = {};
+__export(imageGenerator_exports, {
+  generateSongArtwork: () => generateSongArtwork
+});
+import { createCanvas } from "canvas";
+import fs3 from "fs";
+import path3 from "path";
+import crypto from "crypto";
+function stringToColors(str, count = 4) {
+  const hash = crypto.createHash("md5").update(str).digest("hex");
+  const colors = [];
+  for (let i = 0; i < count; i++) {
+    const offset = i * 6;
+    const r = parseInt(hash.substr(offset, 2), 16);
+    const g = parseInt(hash.substr(offset + 2, 2), 16);
+    const b = parseInt(hash.substr(offset + 4, 2), 16);
+    const enhancedR = Math.min(255, Math.floor(r * 1.2));
+    const enhancedG = Math.min(255, Math.floor(g * 1.2));
+    const enhancedB = Math.min(255, Math.floor(b * 1.2));
+    colors.push(`rgb(${enhancedR}, ${enhancedG}, ${enhancedB})`);
+  }
+  return colors;
+}
+function seededRandom(seed, index) {
+  const hash = crypto.createHash("md5").update(seed + index).digest("hex");
+  return parseInt(hash.substr(0, 8), 16) / 4294967295;
+}
+async function generateSongArtwork(options) {
+  const { title, style = "", seed = title } = options;
+  const width = 800;
+  const height = 800;
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext("2d");
+  const seedString = `${title}-${style}-${seed}`;
+  const colors = stringToColors(seedString, 5);
+  const gradientType = Math.floor(seededRandom(seedString, 0) * 3);
+  let gradient;
+  if (gradientType === 0) {
+    const centerX = width * (0.3 + seededRandom(seedString, 1) * 0.4);
+    const centerY = height * (0.3 + seededRandom(seedString, 2) * 0.4);
+    const radius = Math.max(width, height) * 0.8;
+    gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+  } else if (gradientType === 1) {
+    const angle = seededRandom(seedString, 3) * Math.PI * 2;
+    const x1 = width / 2 + Math.cos(angle) * width;
+    const y1 = height / 2 + Math.sin(angle) * height;
+    const x2 = width / 2 - Math.cos(angle) * width;
+    const y2 = height / 2 - Math.sin(angle) * height;
+    gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+  } else {
+    const isVertical = seededRandom(seedString, 4) > 0.5;
+    if (isVertical) {
+      gradient = ctx.createLinearGradient(0, 0, 0, height);
+    } else {
+      gradient = ctx.createLinearGradient(0, 0, width, 0);
+    }
+  }
+  colors.forEach((color, index) => {
+    const stop = index / (colors.length - 1);
+    gradient.addColorStop(stop, color);
+  });
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+  const shapeCount = Math.floor(seededRandom(seedString, 5) * 3) + 2;
+  for (let i = 0; i < shapeCount; i++) {
+    const shapeX = seededRandom(seedString, 10 + i * 4) * width;
+    const shapeY = seededRandom(seedString, 11 + i * 4) * height;
+    const shapeSize = (seededRandom(seedString, 12 + i * 4) * 0.3 + 0.2) * Math.min(width, height);
+    const shapeColor = colors[Math.floor(seededRandom(seedString, 13 + i * 4) * colors.length)];
+    const shapeType = Math.floor(seededRandom(seedString, 14 + i * 4) * 2);
+    ctx.globalAlpha = 0.15;
+    ctx.fillStyle = shapeColor;
+    if (shapeType === 0) {
+      ctx.beginPath();
+      ctx.arc(shapeX, shapeY, shapeSize, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      const points = 8;
+      for (let j = 0; j < points; j++) {
+        const angle = j / points * Math.PI * 2;
+        const radius = shapeSize * (0.7 + seededRandom(seedString, 20 + i * 10 + j) * 0.6);
+        const x = shapeX + Math.cos(angle) * radius;
+        const y = shapeY + Math.sin(angle) * radius;
+        if (j === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
+  const filename = `song-${crypto.createHash("md5").update(seedString).digest("hex")}.png`;
+  const outputDir = path3.join(process.cwd(), "dist", "public", "artwork");
+  if (!fs3.existsSync(outputDir)) {
+    fs3.mkdirSync(outputDir, { recursive: true });
+  }
+  const outputPath = path3.join(outputDir, filename);
+  const buffer = canvas.toBuffer("image/png");
+  fs3.writeFileSync(outputPath, buffer);
+  return `/artwork/${filename}`;
+}
+var init_imageGenerator = __esm({
+  "server/_core/imageGenerator.ts"() {
+    "use strict";
+  }
+});
+
 // server/_core/llm.ts
 var llm_exports = {};
 __export(llm_exports, {
@@ -1190,7 +1303,7 @@ __export(vite_config_exports, {
 import { jsxLocPlugin } from "@builder.io/vite-plugin-jsx-loc";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import path3 from "node:path";
+import path4 from "node:path";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
 import { defineConfig } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
@@ -1198,8 +1311,8 @@ var currentDir2, resolveFromRoot, plugins, vite_config_default;
 var init_vite_config = __esm({
   "vite.config.ts"() {
     "use strict";
-    currentDir2 = path3.dirname(fileURLToPath2(import.meta.url));
-    resolveFromRoot = (...segments) => path3.resolve(currentDir2, ...segments);
+    currentDir2 = path4.dirname(fileURLToPath2(import.meta.url));
+    resolveFromRoot = (...segments) => path4.resolve(currentDir2, ...segments);
     plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime()];
     vite_config_default = defineConfig({
       plugins,
@@ -1940,8 +2053,8 @@ async function downloadYouTubeAudio(youtubeUrl) {
     try {
       console.log(`[YouTube] Trying strategy ${i + 1}/${strategies.length}`);
       await execAsync(strategies[i], { timeout: 12e4 });
-      const fs4 = await import("fs/promises");
-      await fs4.access(tempFile);
+      const fs5 = await import("fs/promises");
+      await fs5.access(tempFile);
       console.log(`[YouTube] Strategy ${i + 1} succeeded`);
       break;
     } catch (error) {
@@ -1950,14 +2063,14 @@ async function downloadYouTubeAudio(youtubeUrl) {
     }
   }
   try {
-    const fs4 = await import("fs/promises");
-    await fs4.access(tempFile);
+    const fs5 = await import("fs/promises");
+    await fs5.access(tempFile);
   } catch {
     throw new Error(`Failed to download YouTube audio after trying all strategies: ${lastError?.message || "Unknown error"}`);
   }
   try {
-    const fs4 = await import("fs/promises");
-    const audioBuffer = await fs4.readFile(tempFile);
+    const fs5 = await import("fs/promises");
+    const audioBuffer = await fs5.readFile(tempFile);
     const s3Key = `voice-covers/input-${tempId}.mp3`;
     const result = await storagePut(s3Key, audioBuffer, "audio/mpeg");
     await unlink2(tempFile);
@@ -2049,7 +2162,19 @@ var appRouter = router({
     ).mutation(async ({ ctx, input }) => {
       const { createMusicTrack: createMusicTrack2, updateMusicTrack: updateMusicTrack2 } = await Promise.resolve().then(() => (init_db(), db_exports));
       const { generateMusic: generateMusic2, pollTaskCompletion: pollTaskCompletion2 } = await Promise.resolve().then(() => (init_minimaxApi(), minimaxApi_exports));
+      const { generateSongArtwork: generateSongArtwork2 } = await Promise.resolve().then(() => (init_imageGenerator(), imageGenerator_exports));
       const trackId = `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      let imageUrl;
+      try {
+        imageUrl = await generateSongArtwork2({
+          title: input.title || "Untitled",
+          style: input.style,
+          seed: trackId
+        });
+        console.log(`[Music Generation] Generated artwork for ${trackId}: ${imageUrl}`);
+      } catch (error) {
+        console.error(`[Music Generation] Failed to generate artwork for ${trackId}:`, error);
+      }
       await createMusicTrack2({
         id: trackId,
         userId: ctx.user.id,
@@ -2058,6 +2183,7 @@ var appRouter = router({
         style: input.style,
         model: input.model,
         instrumental: input.instrumental ? "yes" : "no",
+        imageUrl,
         status: "pending"
       });
       (async () => {
@@ -2384,13 +2510,13 @@ async function createContext(opts) {
 
 // server/_core/vite.ts
 import express from "express";
-import fs3 from "fs";
+import fs4 from "fs";
 import { nanoid as nanoid4 } from "nanoid";
-import path4 from "path";
+import path5 from "path";
 import cryptoNative from "node:crypto";
 import { fileURLToPath as fileURLToPath3 } from "node:url";
-var currentDir3 = path4.dirname(fileURLToPath3(import.meta.url));
-var resolveFromRoot2 = (...segments) => path4.resolve(currentDir3, ...segments);
+var currentDir3 = path5.dirname(fileURLToPath3(import.meta.url));
+var resolveFromRoot2 = (...segments) => path5.resolve(currentDir3, ...segments);
 var normalizeHashInput = (input) => {
   if (typeof input === "string") return input;
   if (ArrayBuffer.isView(input)) {
@@ -2445,7 +2571,7 @@ async function setupVite(app, server) {
           return next();
         }
         const clientTemplate = resolveFromRoot2("..", "..", "client", "index.html");
-        let template = await fs3.promises.readFile(clientTemplate, "utf-8");
+        let template = await fs4.promises.readFile(clientTemplate, "utf-8");
         template = template.replace(
           `src="/src/main.tsx"`,
           `src="/src/main.tsx?v=${nanoid4()}"`
@@ -2466,14 +2592,14 @@ async function setupVite(app, server) {
 }
 function serveStatic(app) {
   const distPath = process.env.NODE_ENV === "development" ? resolveFromRoot2("..", "..", "dist", "public") : resolveFromRoot2("public");
-  if (!fs3.existsSync(distPath)) {
+  if (!fs4.existsSync(distPath)) {
     console.error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
   app.use(express.static(distPath));
   app.use("*", (_req, res) => {
-    res.sendFile(path4.resolve(distPath, "index.html"));
+    res.sendFile(path5.resolve(distPath, "index.html"));
   });
 }
 

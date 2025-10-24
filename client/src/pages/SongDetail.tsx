@@ -252,9 +252,19 @@ export default function SongDetail() {
           <div className="flex gap-8 mb-8">
             {/* Album Art */}
             <div className="relative w-72 h-72 flex-shrink-0">
-              <div className={`w-full h-full bg-gradient-to-br ${gradient} rounded-lg shadow-2xl flex items-center justify-center`}>
-                <ListMusic className="h-24 w-24 text-white/80" />
-              </div>
+              {song.imageUrl ? (
+                <div className="w-full h-full rounded-lg shadow-2xl overflow-hidden">
+                  <img
+                    src={song.imageUrl}
+                    alt={song.title || "Song artwork"}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className={`w-full h-full bg-gradient-to-br ${gradient} rounded-lg shadow-2xl flex items-center justify-center`}>
+                  <ListMusic className="h-24 w-24 text-white/80" />
+                </div>
+              )}
               <button className="absolute bottom-4 left-4 bg-background/80 backdrop-blur-sm rounded-full p-2 hover:bg-background transition-colors">
                 <ThumbsUp className="h-5 w-5" />
               </button>

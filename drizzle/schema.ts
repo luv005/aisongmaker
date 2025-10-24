@@ -30,6 +30,7 @@ export const musicTracks = mysqlTable("music_tracks", {
   instrumental: mysqlEnum("instrumental", ["yes", "no"]).default("no"),
   audioUrl: text("audioUrl"),
   streamUrl: text("streamUrl"),
+  imageUrl: text("imageUrl"),
   status: mysqlEnum("status", ["pending", "processing", "completed", "failed"]).default("pending").notNull(),
   createdAt: timestamp("createdAt").defaultNow(),
 });
