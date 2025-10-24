@@ -63,9 +63,9 @@ export default function AICover() {
         onClick={() => setLocation(`/ai-cover/${voice.id}`)}
       >
         <div className="relative aspect-square bg-gradient-to-br from-purple-500/20 to-pink-500/20">
-          {voice.avatarUrl ? (
+          {voice.avatar ? (
             <img
-              src={voice.avatarUrl}
+              src={voice.avatar}
               alt={voice.name}
               className="absolute inset-0 w-full h-full object-cover"
             />
