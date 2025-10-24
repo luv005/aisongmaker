@@ -15,6 +15,7 @@ export function GlobalMusicPlayer() {
     setVolume,
     next,
     previous,
+    close,
   } = useAudioPlayer();
 
   const [isMuted, setIsMuted] = useState(false);
@@ -52,10 +53,7 @@ export function GlobalMusicPlayer() {
   };
 
   const handleClose = () => {
-    // Pause and clear the track
-    if (isPlaying) {
-      togglePlayPause();
-    }
+    close();
   };
 
   return (

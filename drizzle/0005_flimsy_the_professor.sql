@@ -1,0 +1,1 @@
+ALTER TABLE `music_tracks` ADD `imageUrl` text;

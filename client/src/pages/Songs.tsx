@@ -451,7 +451,7 @@ export default function Songs() {
       </header>
 
       {/* Content */}
-      <main className="relative flex-1 px-6 py-8">
+      <main className="relative flex-1 px-6 py-8 pb-24">
         {activeTab === "ai-music" ? renderMusicTracks() : renderCoverTracks()}
       </main>
     </div>

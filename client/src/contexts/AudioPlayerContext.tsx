@@ -23,6 +23,7 @@ interface AudioPlayerContextType {
   setVolume: (volume: number) => void;
   next: () => void;
   previous: () => void;
+  close: () => void;
 }
 
 const AudioPlayerContext = createContext<AudioPlayerContextType | undefined>(undefined);
@@ -127,6 +128,17 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
     console.log('Previous track');
   };
 
+  const close = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+    }
+    setCurrentTrack(null);
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+  };
+
   return (
     <AudioPlayerContext.Provider
       value={{
@@ -143,6 +155,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
         setVolume,
         next,
         previous,
+        close,
       }}
     >
       {children}

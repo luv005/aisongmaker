@@ -256,7 +256,7 @@ export default function VoiceCoverCreate() {
 
       <div className="flex-1 overflow-hidden flex">
         {/* Left Panel - Voice Cover Creation */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 pb-24">
         <div className="max-w-5xl mx-auto">
         <div className="grid md:grid-cols-[300px_1fr] gap-8">
           {/* Voice Profile */}
@@ -426,7 +426,7 @@ export default function VoiceCoverCreate() {
         </div>
 
         {/* Right Panel - Voice Covers History */}
-        <div className="w-96 border-l border-border overflow-y-auto p-6">
+        <div className="w-96 border-l border-border overflow-y-auto p-6 pb-24">
           <div className="flex items-center justify-between mb-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

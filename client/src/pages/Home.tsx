@@ -227,7 +227,7 @@ export default function Home() {
       {/* Main Content */}
       <div className="flex-1 overflow-hidden flex">
         {/* Left Panel - Music Creation */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 pb-24 space-y-6">
           {/* Settings Button */}
           <div>
             <Label className="text-sm font-medium mb-2 flex items-center gap-2">
@@ -400,7 +400,7 @@ export default function Home() {
         </div>
 
         {/* Right Panel - Music History */}
-        <div className="w-96 border-l border-border overflow-y-auto p-6">
+        <div className="w-96 border-l border-border overflow-y-auto p-6 pb-24">
           <div className="flex items-center justify-between mb-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
