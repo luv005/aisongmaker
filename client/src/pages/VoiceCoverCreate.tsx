@@ -37,21 +37,11 @@ export default function VoiceCoverCreate() {
     const shareUrl = `${window.location.origin}/song/${coverId}`;
     
     try {
-      if (navigator.share) {
-        await navigator.share({
-          title: title || "My AI Cover",
-          text: `Check out my AI cover "${title || "My AI Cover"}" created with AI!`,
-          url: shareUrl,
-        });
-      } else {
-        await navigator.clipboard.writeText(shareUrl);
-        toast.success("Link copied to clipboard!");
-      }
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success("Copied successfully!");
     } catch (err) {
-      if ((err as Error).name !== 'AbortError') {
-        console.error("Error sharing:", err);
-        toast.error("Failed to share");
-      }
+      console.error("Error copying link:", err);
+      toast.error("Failed to copy link");
     }
   };
 
