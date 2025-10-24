@@ -113,9 +113,9 @@ export default function Layout(props: LayoutProps) {
                     <User className="mr-2 h-4 w-4" />
                     <span>View Profile</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => window.location.href = '/subscription'}>
                     <Settings className="mr-2 h-4 w-4" />
-                    <span>Manage Account</span>
+                    <span>Manage Subscription</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout}>

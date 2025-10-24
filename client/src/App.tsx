@@ -12,6 +12,7 @@ import AICover from "./pages/AICover";
 import VoiceCoverCreate from "./pages/VoiceCoverCreate";
 import SongDetail from "./pages/SongDetail";
 import Songs from "./pages/Songs";
+import Subscription from "./pages/Subscription";
 
 function Router() {
   return (
@@ -22,6 +23,7 @@ function Router() {
         <Route path="/ai-cover" component={AICover} />
         <Route path="/ai-cover/:voiceId" component={VoiceCoverCreate} />
         <Route path={"/songs"} component={Songs} />
+        <Route path={"/subscription"} component={Subscription} />
         <Route path={"/vibes"} component={Home} />
         <Route path={"/playlists"} component={Home} />
         <Route path={"/404"} component={NotFound} />
