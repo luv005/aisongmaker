@@ -2279,7 +2279,7 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
             ]
           });
           const generatedLyrics = lyricsResponse.choices[0]?.message?.content || "";
-          finalPrompt = trimLyrics(generatedLyrics);
+          finalPrompt = trimLyricsToWordLimit(generatedLyrics);
           console.log(`[Music Generation] Generated lyrics for ${trackId}:`, finalPrompt.substring(0, 200) + "...");
         } catch (error) {
           console.error(`[Music Generation] Failed to generate from description:`, error);
