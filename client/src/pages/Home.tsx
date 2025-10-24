@@ -425,7 +425,8 @@ export default function Home() {
               {history.map((track: any) => (
                 <Card
                   key={track.id}
-                  className="overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all"
+                  className="overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all cursor-pointer"
+                  onClick={() => track.status === "completed" && setLocation(`/song/${track.id}`)}
                 >
                   <div className="flex gap-3 p-3">
                     {/* Thumbnail with duration overlay */}
@@ -451,7 +452,10 @@ export default function Home() {
                       )}
                       {track.status === "completed" && track.audioUrl && (
                         <button
-                          onClick={() => handlePlay(track)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePlay(track);
+                          }}
                           className="absolute inset-0 bg-black/40 hover:bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity group"
                         >
                           {currentTrack?.id === track.id && isPlaying ? (
@@ -492,7 +496,10 @@ export default function Home() {
                               <Download className="h-4 w-4" />
                             </button>
                             <button
-                              onClick={() => handlePlay(track)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePlay(track);
+                              }}
                               className="flex items-center gap-1 hover:text-foreground transition-colors"
                             >
                               <Headphones className="h-4 w-4" />
