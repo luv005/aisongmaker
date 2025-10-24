@@ -107,6 +107,7 @@ export default function Home() {
       model: "V5", // Placeholder for compatibility
       customMode,
       instrumental,
+      gender,
     });
   };
 

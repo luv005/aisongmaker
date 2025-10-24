@@ -102,6 +102,7 @@ export const appRouter = router({
           model: z.enum(["V5", "V4_5PLUS", "V4_5", "V4", "V3_5"]),
           customMode: z.boolean(),
           instrumental: z.boolean(),
+          gender: z.enum(["m", "f", "random"]).optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -149,6 +150,7 @@ export const appRouter = router({
               title: input.title,
               style: input.style,
               instrumental: input.instrumental,
+              gender: input.gender,
             });
 
             console.log(`[Music Generation] API result for ${trackId}:`, JSON.stringify(result, null, 2));

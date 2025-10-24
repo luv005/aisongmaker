@@ -18,6 +18,7 @@ export interface GenerateMusicParams {
   title?: string;
   style?: string;
   instrumental?: boolean;
+  gender?: "m" | "f" | "random";
 }
 
 export interface MusicGenerationResponse {
@@ -154,6 +155,13 @@ export async function generateMusic(
     if (params.style) {
       stylePrompt = `${params.style} style music`;
     }
+    
+    // Add gender/voice preference to the prompt
+    if (params.gender && params.gender !== "random" && !params.instrumental) {
+      const voiceStyle = params.gender === "f" ? "female vocals" : "male vocals";
+      stylePrompt = stylePrompt ? `${stylePrompt}, ${voiceStyle}` : voiceStyle;
+    }
+    
     if (params.title) {
       stylePrompt = `${stylePrompt}. Title: "${params.title}"`;
     }
