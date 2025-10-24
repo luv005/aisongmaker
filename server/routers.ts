@@ -310,17 +310,13 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
       return getUserMusicTracks(ctx.user.id);
     }),
 
-    getById: protectedProcedure
+    getById: publicProcedure
       .input(z.object({ id: z.string() }))
-      .query(async ({ ctx, input }) => {
+      .query(async ({ input }) => {
         const { getMusicTrackById } = await import("./db.js");
         const track = await getMusicTrackById(input.id);
         
-        // Only allow users to view their own tracks
-        if (track && track.userId !== ctx.user.id) {
-          throw new Error("Unauthorized");
-        }
-        
+        // Public access - anyone can view shared songs
         return track;
       }),
 

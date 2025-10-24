@@ -2377,12 +2377,9 @@ Ensure the lyrics can be performed within ${MAX_LYRIC_DURATION_MINUTES} minutes 
       const { getUserMusicTracks: getUserMusicTracks2 } = await Promise.resolve().then(() => (init_db(), db_exports));
       return getUserMusicTracks2(ctx.user.id);
     }),
-    getById: protectedProcedure.input(z3.object({ id: z3.string() })).query(async ({ ctx, input }) => {
+    getById: publicProcedure.input(z3.object({ id: z3.string() })).query(async ({ input }) => {
       const { getMusicTrackById: getMusicTrackById2 } = await Promise.resolve().then(() => (init_db(), db_exports));
       const track = await getMusicTrackById2(input.id);
-      if (track && track.userId !== ctx.user.id) {
-        throw new Error("Unauthorized");
-      }
       return track;
     }),
     generateLyrics: protectedProcedure.input(
