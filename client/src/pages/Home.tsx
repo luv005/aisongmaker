@@ -29,7 +29,7 @@ export default function Home() {
   const [customMode, setCustomMode] = useState(true);
   const [instrumental, setInstrumental] = useState(false);
   const [gender, setGender] = useState<"m" | "f" | "random">("random");
-  const [activeTab, setActiveTab] = useState<"lyrics" | "description" | "audio">("lyrics");
+  const [activeTab, setActiveTab] = useState<"lyrics" | "description">("lyrics");
   const [showStructureMenu, setShowStructureMenu] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [isGeneratingLyrics, setIsGeneratingLyrics] = useState(false);
@@ -246,17 +246,6 @@ export default function Home() {
           >
             Description
           </button>
-          <button
-            className={`px-4 py-2 text-sm font-medium transition-colors relative ${
-              activeTab === "audio"
-                ? "text-primary border-b-2 border-primary"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setActiveTab("audio")}
-          >
-            Audio
-            <Badge className="ml-2 bg-primary text-primary-foreground text-xs px-1.5 py-0">NEW</Badge>
-          </button>
         </div>
 
         <div className="flex items-center gap-2">
@@ -432,13 +421,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* Audio Tab - Placeholder */}
-          {activeTab === "audio" && (
-            <div className="text-center py-12 text-muted-foreground">
-              <Music className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Audio upload coming soon</p>
-            </div>
-          )}
+
 
           {/* Gender - Hidden in Description tab */}
           {activeTab !== "description" && (

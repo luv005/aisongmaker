@@ -103,16 +103,6 @@ export default function AICover() {
           <p className="text-xs text-muted-foreground mb-2">
             {voice.category}
           </p>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Users className="h-3 w-3" />
-              <span>{(voice.uses / 1000).toFixed(1)}K</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Heart className="h-3 w-3" />
-              <span>{voice.likes}</span>
-            </div>
-          </div>
         </div>
       </Card>
     );
