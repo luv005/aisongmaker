@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { getLoginUrl } from "@/const";
@@ -13,6 +13,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import MusicSettings, { MusicSettingsData } from "@/components/MusicSettings";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function Landing() {
   const { user, isAuthenticated } = useAuth();
@@ -201,16 +202,6 @@ export default function Landing() {
                     onChange={setMusicSettings}
                     customMode={customMode}
                     onCustomModeChange={setCustomMode}
-                  />
-                </div>
-
-                {/* Instrumental */}
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="instrumental" className="text-base">Instrumental</Label>
-                  <Switch
-                    id="instrumental"
-                    checked={instrumental}
-                    onCheckedChange={setInstrumental}
                   />
                 </div>
 
