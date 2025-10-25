@@ -438,52 +438,121 @@ export default function Landing() {
       {/* Features Section */}
       <section className="py-20 px-6">
         <div className="container max-w-6xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-12">Powerful Features for Limitless Creativity</h2>
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div>
-              <img src="/images/ai-music-features.png" alt="AI Music Generation Features" className="rounded-lg shadow-lg" />
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">Features of the AI Music Generator</h2>
+            <p className="text-lg text-muted-foreground">Our AI music generator provides a variety of features that simplify the music creation process, making it easy and efficient.</p>
+          </div>
+
+          {/* Text to Song Feature */}
+          <div className="mb-32">
+            <div className="grid md:grid-cols-2 gap-12 items-center mb-12">
+              <div>
+                <img src="/images/ai-music-features.png" alt="Text to Song Interface" className="rounded-lg shadow-2xl border border-border/20" />
+              </div>
+              <div>
+                <h3 className="text-3xl font-bold mb-4">Text to Song</h3>
+                <p className="text-muted-foreground mb-8">
+                  Bring your ideas to life with our simple mode. Just describe what you want - the mood, style, instruments, or any musical elements - and our AI will craft a complete song that aligns with your vision. Ideal for those seeking quick results without delving into technical details.
+                </p>
+                <div className="grid md:grid-cols-2 gap-6 mb-8">
+                  <Card className="p-6 bg-card/30 border-border/20">
+                    <div className="flex items-center justify-center h-12 w-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg mb-4">
+                      <Sparkles className="h-6 w-6 text-white" />
+                    </div>
+                    <h4 className="font-semibold mb-2">Simple Description</h4>
+                    <p className="text-sm text-muted-foreground">Simply describe your song idea in everyday language - no musical background required. Our AI captures and translates your vision flawlessly.</p>
+                  </Card>
+                  <Card className="p-6 bg-card/30 border-border/20">
+                    <div className="flex items-center justify-center h-12 w-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg mb-4">
+                      <Mic className="h-6 w-6 text-white" />
+                    </div>
+                    <h4 className="font-semibold mb-2">Voice Control</h4>
+                    <p className="text-sm text-muted-foreground">Select from male, female, or random vocals, or create instrumental tracks - offering complete flexibility for your musical goals.</p>
+                  </Card>
+                </div>
+                <Button size="lg" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600" onClick={scrollToGenerator}>
+                  Try Text to Song Now
+                </Button>
+              </div>
             </div>
-            <div className="space-y-8">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 h-12 w-12 flex items-center justify-center bg-primary/10 rounded-full">
-                  <Sparkles className="h-6 w-6 text-primary" />
+          </div>
+
+          {/* Lyrics to Song Feature */}
+          <div className="mb-32">
+            <div className="grid md:grid-cols-2 gap-12 items-center mb-12">
+              <div className="order-2 md:order-1">
+                <h3 className="text-3xl font-bold mb-4">Lyrics to Song</h3>
+                <p className="text-muted-foreground mb-8">
+                  Convert your lyrics into a complete song with our advanced mode. Input your lyrics, choose the musical style, and let our AI create the perfect accompaniment that brings your words to life with harmonious melodies.
+                </p>
+                <div className="grid md:grid-cols-2 gap-6 mb-8">
+                  <Card className="p-6 bg-card/30 border-border/20">
+                    <div className="flex items-center justify-center h-12 w-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg mb-4">
+                      <Settings className="h-6 w-6 text-white" />
+                    </div>
+                    <h4 className="font-semibold mb-2">Style Customization</h4>
+                    <p className="text-sm text-muted-foreground">Adjust your song with precise style preferences, genre specifications, and musical elements for a personalized outcome.</p>
+                  </Card>
+                  <Card className="p-6 bg-card/30 border-border/20">
+                    <div className="flex items-center justify-center h-12 w-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg mb-4">
+                      <Music className="h-6 w-6 text-white" />
+                    </div>
+                    <h4 className="font-semibold mb-2">Smart Lyrics Processing</h4>
+                    <p className="text-sm text-muted-foreground">Our AI evaluates the emotion and rhythm of your lyrics to compose perfectly matched music, alongside options for spontaneous random lyrics inspiration.</p>
+                  </Card>
                 </div>
-                <div>
-                  <h3 className="text-xl font-semibold">Instant Song Creation</h3>
-                  <p className="text-muted-foreground">Go from idea to full song in seconds. No musical knowledge required.</p>
+                <Button size="lg" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600" onClick={scrollToGenerator}>
+                  Create with Lyrics Now
+                </Button>
+              </div>
+              <div className="order-1 md:order-2">
+                <img src="/images/ai-music-features.png" alt="Lyrics to Song Interface" className="rounded-lg shadow-2xl border border-border/20" />
+              </div>
+            </div>
+          </div>
+
+          {/* AI Song Cover Generator Feature */}
+          <div>
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div>
+                <div className="aspect-video bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-lg shadow-2xl flex items-center justify-center relative overflow-hidden">
+                  <div className="absolute inset-0 bg-[url('/images/music-waves.svg')] opacity-20"></div>
+                  <div className="relative z-10 text-center p-8">
+                    <Guitar className="h-24 w-24 text-white mx-auto mb-4" />
+                    <h4 className="text-2xl font-bold text-white">AI Voice Covers</h4>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 h-12 w-12 flex items-center justify-center bg-primary/10 rounded-full">
-                  <Music className="h-6 w-6 text-primary" />
+              <div>
+                <h3 className="text-3xl font-bold mb-4">AI Song Cover Generator</h3>
+                <p className="text-muted-foreground mb-8">
+                  Reimagine existing songs as unique covers with our AI technology. Upload your favorite track and let our AI generate a fresh interpretation while keeping the original melody and structure intact, with options to tweak the style and vocals.
+                </p>
+                <div className="grid md:grid-cols-2 gap-6 mb-8">
+                  <Card className="p-6 bg-card/30 border-border/20">
+                    <div className="flex items-center justify-center h-12 w-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg mb-4">
+                      <Mic className="h-6 w-6 text-white" />
+                    </div>
+                    <h4 className="font-semibold mb-2">Voice Cloning</h4>
+                    <p className="text-sm text-muted-foreground">Upload your audio files to clone any voice. Our AI captures vocal characteristics and perfectly recreates them for your cover songs.</p>
+                  </Card>
+                  <Card className="p-6 bg-card/30 border-border/20">
+                    <div className="flex items-center justify-center h-12 w-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg mb-4">
+                      <Settings className="h-6 w-6 text-white" />
+                    </div>
+                    <h4 className="font-semibold mb-2">Advanced Voice Control</h4>
+                    <p className="text-sm text-muted-foreground">Refine the cloned voice with detailed controls for pitch, tone, and expression to shape the ideal vocal performance for your cover.</p>
+                  </Card>
                 </div>
-                <div>
-                  <h3 className="text-xl font-semibold">Multiple Genres & Styles</h3>
-                  <p className="text-muted-foreground">Explore a vast library of genres, from Pop and Rock to Hip-Hop and Electronic.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 h-12 w-12 flex items-center justify-center bg-primary/10 rounded-full">
-                  <Mic className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold">Customizable Vocals</h3>
-                  <p className="text-muted-foreground">Choose between male, female, or random voice models to sing your lyrics.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 h-12 w-12 flex items-center justify-center bg-primary/10 rounded-full">
-                  <Settings className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold">Royalty-Free Music</h3>
-                  <p className="text-muted-foreground">Use your creations in any project, personal or commercial, without worrying about licensing.</p>
-                </div>
+                <Button size="lg" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600" disabled>
+                  Coming Soon
+                </Button>
               </div>
             </div>
           </div>
         </div>
       </section>
+
 
       {/* AI Voice Cover Section */}
       <section className="py-20 px-6">
