@@ -20,6 +20,9 @@ export default function Layout(props: LayoutProps) {
   const [location] = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
   
+  // Hide sidebar on landing page
+  const showSidebar = location !== '/';
+  
   const getUserInitial = () => {
     if (!user?.name) return "U";
     return user.name.charAt(0).toUpperCase();
@@ -27,7 +30,7 @@ export default function Layout(props: LayoutProps) {
 
   const navItems = [
     { label: "Featured", icon: Home, href: "/featured", section: "EXPLORE" },
-    { label: "AI Music", icon: Music, href: "/", section: "CREATE" },
+    { label: "AI Music", icon: Music, href: "/ai-music", section: "CREATE" },
     { label: "AI Cover", icon: Mic2, href: "/ai-cover", section: "CREATE" },
     { label: "Songs", icon: ListMusic, href: "/songs", section: "LIBRARY" },
     { label: "Vibes", icon: Music2, href: "/vibes", section: "LIBRARY" },
@@ -38,6 +41,7 @@ export default function Layout(props: LayoutProps) {
 
   return (
     <div className="flex h-screen bg-background">
+      {showSidebar && (
       <aside className="w-60 border-r border-border flex flex-col">
         <div className="p-6 border-b border-border/50">
           <Link href="/">
@@ -81,6 +85,7 @@ export default function Layout(props: LayoutProps) {
           })}
         </nav>
       </aside>
+      )}
 
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header */}

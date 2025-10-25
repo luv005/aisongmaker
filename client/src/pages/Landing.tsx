@@ -205,7 +205,8 @@ export default function Landing() {
                   />
                 </div>
 
-                {/* Title */}
+                {/* Title - Only show for Lyrics mode */}
+                {activeTab === "lyrics" && (
                 <div>
                   <Label htmlFor="title" className="text-base font-semibold mb-2 block">
                     Title (Optional)
@@ -222,6 +223,7 @@ export default function Landing() {
                     {title.length} / 80
                   </div>
                 </div>
+                )}
 
                 {/* Lyrics */}
                 <div>
