@@ -3,17 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Sparkles, Settings, Music } from "lucide-react";
+import { Loader2, Sparkles, Settings, Music, Mic, Guitar, Bot, Clapperboard, Gamepad2, GraduationCap, Briefcase, Heart } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import MusicSettings, { MusicSettingsData } from "@/components/MusicSettings";
-import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function Landing() {
   const { user, isAuthenticated } = useAuth();
@@ -56,14 +54,12 @@ export default function Landing() {
       return;
     }
 
-    // Extract selected settings
     const selectedSettings = [
       musicSettings.style,
       musicSettings.mood,
       musicSettings.scenario,
     ].filter(Boolean);
 
-    // Description mode: generate lyrics from description first (no settings required)
     if (activeTab === "description") {
       if (!description.trim()) {
         toast.error("Please enter a song description");
@@ -71,22 +67,20 @@ export default function Landing() {
       }
 
       generateMutation.mutate({
-        prompt: "", // Empty prompt triggers description mode
+        prompt: "",
         description: description.trim(),
         title: title || undefined,
         gender,
-        instrumental: false, // Description mode always has vocals
+        instrumental: false,
       });
       return;
     }
 
-    // Lyrics/Audio mode: require settings
     if (selectedSettings.length === 0 && !customMode) {
       toast.error("Please select at least one music setting");
       return;
     }
 
-    // Lyrics mode: use provided lyrics
     if (!prompt.trim()) {
       toast.error("Please enter lyrics for your song");
       return;
@@ -136,29 +130,27 @@ export default function Landing() {
   };
 
   const scrollToGenerator = () => {
-    document.getElementById('generator')?.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById("generator")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
       <section className="relative py-20 px-6 text-center overflow-hidden">
-        {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background"></div>
-        
         <div className="relative container max-w-6xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-            AI Song Maker & AI Music Generator
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-teal-400 to-purple-500 bg-clip-text text-transparent">
+            Unleash Your Inner Musician
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-4xl mx-auto">
-            Create songs effortlessly with our AI Song Maker. Compose tracks, generate AI songs, and enjoy royalty-free music creation with ease.
+            Create unique, royalty-free music with our AI-powered song generator. Whether you have lyrics or just an idea, we bring your musical vision to life in seconds.
           </p>
           <Button
             size="lg"
-            className="text-lg px-8 py-6 bg-gradient-to-r from-teal-500 to-green-500 hover:from-teal-600 hover:to-green-600 text-white font-semibold"
+            className="text-lg px-8 py-6 bg-gradient-to-r from-teal-500 to-green-500 hover:from-teal-600 hover:to-green-600 text-white font-semibold shadow-lg transform hover:scale-105 transition-transform duration-300"
             onClick={scrollToGenerator}
           >
-            Try AI Song Maker & AI Music Generator For Free →
+            Start Creating Music For Free
           </Button>
         </div>
       </section>
@@ -166,11 +158,11 @@ export default function Landing() {
       {/* AI Song Generator Section */}
       <section id="generator" className="py-12 px-6">
         <div className="container max-w-4xl mx-auto">
-          <Card className="p-8 border-border/40 bg-card/50 backdrop-blur">
+          <Card className="p-8 border-border/40 bg-card/50 backdrop-blur-lg shadow-2xl">
             {/* Tabs */}
             <div className="flex items-center gap-6 mb-8 border-b border-border pb-2">
               <button
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                className={`px-4 py-2 text-lg font-medium transition-colors ${
                   activeTab === "lyrics"
                     ? "text-primary border-b-2 border-primary -mb-[9px]"
                     : "text-muted-foreground hover:text-foreground"
@@ -180,7 +172,7 @@ export default function Landing() {
                 Lyrics to Song
               </button>
               <button
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                className={`px-4 py-2 text-lg font-medium transition-colors ${
                   activeTab === "description"
                     ? "text-primary border-b-2 border-primary -mb-[9px]"
                     : "text-muted-foreground hover:text-foreground"
@@ -411,6 +403,179 @@ export default function Landing() {
           </Card>
         </div>
       </section>
+
+      {/* How It Works Section */}
+      <section className="py-20 px-6 bg-background">
+        <div className="container max-w-6xl mx-auto text-center">
+          <h2 className="text-4xl font-bold mb-4">Create Your Masterpiece in 3 Simple Steps</h2>
+          <p className="text-lg text-muted-foreground mb-12">From a spark of an idea to a full song in minutes.</p>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="p-8 bg-card/30 rounded-lg border border-border/20">
+              <div className="flex items-center justify-center h-16 w-16 bg-gradient-to-br from-teal-500 to-green-500 rounded-full mx-auto mb-6">
+                <Mic className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-2">1. Describe Your Song</h3>
+              <p className="text-muted-foreground">Start with lyrics or a simple text description of the song you envision. Choose the mood, style, and vocals.</p>
+            </div>
+            <div className="p-8 bg-card/30 rounded-lg border border-border/20">
+              <div className="flex items-center justify-center h-16 w-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full mx-auto mb-6">
+                <Bot className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-2">2. Let AI Work Its Magic</h3>
+              <p className="text-muted-foreground">Our advanced AI analyzes your input and composes a unique piece of music, complete with vocals and instruments.</p>
+            </div>
+            <div className="p-8 bg-card/30 rounded-lg border border-border/20">
+              <div className="flex items-center justify-center h-16 w-16 bg-gradient-to-br from-pink-500 to-orange-500 rounded-full mx-auto mb-6">
+                <Guitar className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-2">3. Download & Share</h3>
+              <p className="text-muted-foreground">Listen to your creation, download the royalty-free track, and share it with the world. It’s all yours!</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 px-6">
+        <div className="container max-w-6xl mx-auto">
+          <h2 className="text-4xl font-bold text-center mb-12">Powerful Features for Limitless Creativity</h2>
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div>
+              <img src="/path-to-your-feature-image.png" alt="AI Music Generation Features" className="rounded-lg shadow-lg" />
+            </div>
+            <div className="space-y-8">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 h-12 w-12 flex items-center justify-center bg-primary/10 rounded-full">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold">Instant Song Creation</h3>
+                  <p className="text-muted-foreground">Go from idea to full song in seconds. No musical knowledge required.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 h-12 w-12 flex items-center justify-center bg-primary/10 rounded-full">
+                  <Music className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold">Multiple Genres & Styles</h3>
+                  <p className="text-muted-foreground">Explore a vast library of genres, from Pop and Rock to Hip-Hop and Electronic.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 h-12 w-12 flex items-center justify-center bg-primary/10 rounded-full">
+                  <Mic className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold">Customizable Vocals</h3>
+                  <p className="text-muted-foreground">Choose between male, female, or random voice models to sing your lyrics.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 h-12 w-12 flex items-center justify-center bg-primary/10 rounded-full">
+                  <Settings className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold">Royalty-Free Music</h3>
+                  <p className="text-muted-foreground">Use your creations in any project, personal or commercial, without worrying about licensing.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Use Cases Section */}
+      <section className="py-20 px-6 bg-background">
+        <div className="container max-w-6xl mx-auto">
+          <h2 className="text-4xl font-bold text-center mb-12">Who Can Benefit from AI Song Maker?</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 text-center">
+            <div className="p-6 bg-card/30 rounded-lg border border-border/20">
+              <Clapperboard className="h-12 w-12 mx-auto mb-4 text-primary" />
+              <h3 className="text-xl font-semibold">Content Creators</h3>
+            </div>
+            <div className="p-6 bg-card/30 rounded-lg border border-border/20">
+              <Gamepad2 className="h-12 w-12 mx-auto mb-4 text-primary" />
+              <h3 className="text-xl font-semibold">Game Developers</h3>
+            </div>
+            <div className="p-6 bg-card/30 rounded-lg border border-border/20">
+              <Briefcase className="h-12 w-12 mx-auto mb-4 text-primary" />
+              <h3 className="text-xl font-semibold">Marketers</h3>
+            </div>
+            <div className="p-6 bg-card/30 rounded-lg border border-border/20">
+              <GraduationCap className="h-12 w-12 mx-auto mb-4 text-primary" />
+              <h3 className="text-xl font-semibold">Students & Educators</h3>
+            </div>
+            <div className="p-6 bg-card/30 rounded-lg border border-border/20">
+              <Guitar className="h-12 w-12 mx-auto mb-4 text-primary" />
+              <h3 className="text-xl font-semibold">Musicians</h3>
+            </div>
+            <div className="p-6 bg-card/30 rounded-lg border border-border/20">
+              <Heart className="h-12 w-12 mx-auto mb-4 text-primary" />
+              <h3 className="text-xl font-semibold">Hobbyists</h3>
+            </div>
+             <div className="p-6 bg-card/30 rounded-lg border border-border/20">
+              <Bot className="h-12 w-12 mx-auto mb-4 text-primary" />
+              <h3 className="text-xl font-semibold">AI Enthusiasts</h3>
+            </div>
+             <div className="p-6 bg-card/30 rounded-lg border border-border/20">
+              <Sparkles className="h-12 w-12 mx-auto mb-4 text-primary" />
+              <h3 className="text-xl font-semibold">Anyone!</h3>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Community Creations Section (Placeholder) */}
+      <section className="py-20 px-6">
+        <div className="container max-w-6xl mx-auto text-center">
+          <h2 className="text-4xl font-bold mb-12">Hear What Our Community Is Creating</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Placeholder Song Cards */}
+            <Card className="p-4"><div className="aspect-video bg-muted rounded-lg mb-4"></div><h3 className="font-semibold">Summer Vibes</h3><p className="text-sm text-muted-foreground">Pop, Upbeat</p></Card>
+            <Card className="p-4"><div className="aspect-video bg-muted rounded-lg mb-4"></div><h3 className="font-semibold">Midnight Drive</h3><p className="text-sm text-muted-foreground">Electronic, Chill</p></Card>
+            <Card className="p-4"><div className="aspect-video bg-muted rounded-lg mb-4"></div><h3 className="font-semibold">City Lights</h3><p className="text-sm text-muted-foreground">Hip-Hop, Lo-fi</p></Card>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-20 px-6 bg-background">
+        <div className="container max-w-4xl mx-auto">
+          <h2 className="text-4xl font-bold text-center mb-12">Frequently Asked Questions</h2>
+          <div className="space-y-4">
+            <details className="p-4 bg-card/30 rounded-lg border border-border/20 cursor-pointer">
+              <summary className="font-semibold text-lg">Is the music really royalty-free?</summary>
+              <p className="mt-2 text-muted-foreground">Yes! All music you generate is 100% royalty-free. You can use it in your videos, podcasts, games, and any other commercial or non-commercial projects without any additional fees or licenses.</p>
+            </details>
+            <details className="p-4 bg-card/30 rounded-lg border border-border/20 cursor-pointer">
+              <summary className="font-semibold text-lg">What kind of quality can I expect?</summary>
+              <p className="mt-2 text-muted-foreground">We use state-of-the-art AI models to generate high-quality, professional-sounding music. You can download your tracks in standard audio formats, ready for any use.</p>
+            </details>
+            <details className="p-4 bg-card/30 rounded-lg border border-border/20 cursor-pointer">
+              <summary className="font-semibold text-lg">How many songs can I create?</summary>
+              <p className="mt-2 text-muted-foreground">Our free plan allows you to create a limited number of songs per day. For unlimited creations and more advanced features, you can upgrade to one of our premium plans.</p>
+            </details>
+             <details className="p-4 bg-card/30 rounded-lg border border-border/20 cursor-pointer">
+              <summary className="font-semibold text-lg">Can I use my own lyrics?</summary>
+              <p className="mt-2 text-muted-foreground">Absolutely! Our 'Lyrics to Song' feature is perfect for turning your poems, stories, or song lyrics into a complete musical piece. Just paste your text and let the AI do the rest.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 px-6 border-t border-border/20">
+        <div className="container max-w-6xl mx-auto text-center text-muted-foreground">
+          <p>&copy; {new Date().getFullYear()} AI Song Maker. All Rights Reserved.</p>
+          <div className="flex justify-center gap-6 mt-4">
+            <a href="/about" className="hover:text-primary">About</a>
+            <a href="/privacy" className="hover:text-primary">Privacy Policy</a>
+            <a href="/terms" className="hover:text-primary">Terms of Service</a>
+            <a href="/contact" className="hover:text-primary">Contact</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
