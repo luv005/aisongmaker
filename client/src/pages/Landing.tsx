@@ -441,7 +441,7 @@ export default function Landing() {
           <h2 className="text-4xl font-bold text-center mb-12">Powerful Features for Limitless Creativity</h2>
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div>
-              <img src="/path-to-your-feature-image.png" alt="AI Music Generation Features" className="rounded-lg shadow-lg" />
+              <img src="/images/ai-music-features.png" alt="AI Music Generation Features" className="rounded-lg shadow-lg" />
             </div>
             <div className="space-y-8">
               <div className="flex items-start gap-4">
@@ -485,6 +485,62 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* AI Voice Cover Section */}
+      <section className="py-20 px-6">
+        <div className="container max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Transform Any Song with AI Voice Covers</h2>
+            <p className="text-lg text-muted-foreground">Choose from thousands of AI voice models to create unique covers of your favorite songs</p>
+          </div>
+          <div className="grid md:grid-cols-4 gap-6">
+            <Card className="p-6 bg-card/30 border-border/20 hover:border-primary/50 transition-colors cursor-pointer">
+              <div className="aspect-square bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg mb-4 flex items-center justify-center">
+                <Mic className="h-12 w-12 text-white" />
+              </div>
+              <h3 className="font-semibold mb-1">Celebrity Voices</h3>
+              <p className="text-sm text-muted-foreground mb-2">Famous singers & artists</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>1000+ voices</span>
+              </div>
+            </Card>
+            <Card className="p-6 bg-card/30 border-border/20 hover:border-primary/50 transition-colors cursor-pointer">
+              <div className="aspect-square bg-gradient-to-br from-pink-500 to-orange-500 rounded-lg mb-4 flex items-center justify-center">
+                <Sparkles className="h-12 w-12 text-white" />
+              </div>
+              <h3 className="font-semibold mb-1">Anime Characters</h3>
+              <p className="text-sm text-muted-foreground mb-2">Popular anime voices</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>500+ voices</span>
+              </div>
+            </Card>
+            <Card className="p-6 bg-card/30 border-border/20 hover:border-primary/50 transition-colors cursor-pointer">
+              <div className="aspect-square bg-gradient-to-br from-green-500 to-teal-500 rounded-lg mb-4 flex items-center justify-center">
+                <Gamepad2 className="h-12 w-12 text-white" />
+              </div>
+              <h3 className="font-semibold mb-1">Game Characters</h3>
+              <p className="text-sm text-muted-foreground mb-2">Iconic gaming voices</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>300+ voices</span>
+              </div>
+            </Card>
+            <Card className="p-6 bg-card/30 border-border/20 hover:border-primary/50 transition-colors cursor-pointer">
+              <div className="aspect-square bg-gradient-to-br from-yellow-500 to-red-500 rounded-lg mb-4 flex items-center justify-center">
+                <Clapperboard className="h-12 w-12 text-white" />
+              </div>
+              <h3 className="font-semibold mb-1">Cartoon Voices</h3>
+              <p className="text-sm text-muted-foreground mb-2">Classic cartoon characters</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>200+ voices</span>
+              </div>
+            </Card>
+          </div>
+          <div className="text-center mt-8">
+            <Button size="lg" className="bg-gradient-to-r from-teal-500 to-purple-500 hover:from-teal-600 hover:to-purple-600">
+              Explore All Voice Models
+            </Button>
+          </div>
+        </div>
+      </section>
       {/* Use Cases Section */}
       <section className="py-20 px-6 bg-background">
         <div className="container max-w-6xl mx-auto">
@@ -563,63 +619,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-      {/* AI Voice Cover Section */}
-      <section className="py-20 px-6">
-        <div className="container max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Transform Any Song with AI Voice Covers</h2>
-            <p className="text-lg text-muted-foreground">Choose from thousands of AI voice models to create unique covers of your favorite songs</p>
-          </div>
-          <div className="grid md:grid-cols-4 gap-6">
-            <Card className="p-6 bg-card/30 border-border/20 hover:border-primary/50 transition-colors cursor-pointer">
-              <div className="aspect-square bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg mb-4 flex items-center justify-center">
-                <Mic className="h-12 w-12 text-white" />
-              </div>
-              <h3 className="font-semibold mb-1">Celebrity Voices</h3>
-              <p className="text-sm text-muted-foreground mb-2">Famous singers & artists</p>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>1000+ voices</span>
-              </div>
-            </Card>
-            <Card className="p-6 bg-card/30 border-border/20 hover:border-primary/50 transition-colors cursor-pointer">
-              <div className="aspect-square bg-gradient-to-br from-pink-500 to-orange-500 rounded-lg mb-4 flex items-center justify-center">
-                <Sparkles className="h-12 w-12 text-white" />
-              </div>
-              <h3 className="font-semibold mb-1">Anime Characters</h3>
-              <p className="text-sm text-muted-foreground mb-2">Popular anime voices</p>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>500+ voices</span>
-              </div>
-            </Card>
-            <Card className="p-6 bg-card/30 border-border/20 hover:border-primary/50 transition-colors cursor-pointer">
-              <div className="aspect-square bg-gradient-to-br from-green-500 to-teal-500 rounded-lg mb-4 flex items-center justify-center">
-                <Gamepad2 className="h-12 w-12 text-white" />
-              </div>
-              <h3 className="font-semibold mb-1">Game Characters</h3>
-              <p className="text-sm text-muted-foreground mb-2">Iconic gaming voices</p>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>300+ voices</span>
-              </div>
-            </Card>
-            <Card className="p-6 bg-card/30 border-border/20 hover:border-primary/50 transition-colors cursor-pointer">
-              <div className="aspect-square bg-gradient-to-br from-yellow-500 to-red-500 rounded-lg mb-4 flex items-center justify-center">
-                <Clapperboard className="h-12 w-12 text-white" />
-              </div>
-              <h3 className="font-semibold mb-1">Cartoon Voices</h3>
-              <p className="text-sm text-muted-foreground mb-2">Classic cartoon characters</p>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>200+ voices</span>
-              </div>
-            </Card>
-          </div>
-          <div className="text-center mt-8">
-            <Button size="lg" className="bg-gradient-to-r from-teal-500 to-purple-500 hover:from-teal-600 hover:to-purple-600">
-              Explore All Voice Models
-            </Button>
-          </div>
-        </div>
-      </section>
-
       {/* Pricing Section */}
       <section className="py-20 px-6 bg-background">
         <div className="container max-w-6xl mx-auto">
