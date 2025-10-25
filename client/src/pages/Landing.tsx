@@ -563,6 +563,247 @@ export default function Landing() {
           </div>
         </div>
       </section>
+      {/* AI Voice Cover Section */}
+      <section className="py-20 px-6">
+        <div className="container max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Transform Any Song with AI Voice Covers</h2>
+            <p className="text-lg text-muted-foreground">Choose from thousands of AI voice models to create unique covers of your favorite songs</p>
+          </div>
+          <div className="grid md:grid-cols-4 gap-6">
+            <Card className="p-6 bg-card/30 border-border/20 hover:border-primary/50 transition-colors cursor-pointer">
+              <div className="aspect-square bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg mb-4 flex items-center justify-center">
+                <Mic className="h-12 w-12 text-white" />
+              </div>
+              <h3 className="font-semibold mb-1">Celebrity Voices</h3>
+              <p className="text-sm text-muted-foreground mb-2">Famous singers & artists</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>1000+ voices</span>
+              </div>
+            </Card>
+            <Card className="p-6 bg-card/30 border-border/20 hover:border-primary/50 transition-colors cursor-pointer">
+              <div className="aspect-square bg-gradient-to-br from-pink-500 to-orange-500 rounded-lg mb-4 flex items-center justify-center">
+                <Sparkles className="h-12 w-12 text-white" />
+              </div>
+              <h3 className="font-semibold mb-1">Anime Characters</h3>
+              <p className="text-sm text-muted-foreground mb-2">Popular anime voices</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>500+ voices</span>
+              </div>
+            </Card>
+            <Card className="p-6 bg-card/30 border-border/20 hover:border-primary/50 transition-colors cursor-pointer">
+              <div className="aspect-square bg-gradient-to-br from-green-500 to-teal-500 rounded-lg mb-4 flex items-center justify-center">
+                <Gamepad2 className="h-12 w-12 text-white" />
+              </div>
+              <h3 className="font-semibold mb-1">Game Characters</h3>
+              <p className="text-sm text-muted-foreground mb-2">Iconic gaming voices</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>300+ voices</span>
+              </div>
+            </Card>
+            <Card className="p-6 bg-card/30 border-border/20 hover:border-primary/50 transition-colors cursor-pointer">
+              <div className="aspect-square bg-gradient-to-br from-yellow-500 to-red-500 rounded-lg mb-4 flex items-center justify-center">
+                <Clapperboard className="h-12 w-12 text-white" />
+              </div>
+              <h3 className="font-semibold mb-1">Cartoon Voices</h3>
+              <p className="text-sm text-muted-foreground mb-2">Classic cartoon characters</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>200+ voices</span>
+              </div>
+            </Card>
+          </div>
+          <div className="text-center mt-8">
+            <Button size="lg" className="bg-gradient-to-r from-teal-500 to-purple-500 hover:from-teal-600 hover:to-purple-600">
+              Explore All Voice Models
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="py-20 px-6 bg-background">
+        <div className="container max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Choose Your Creative Plan</h2>
+            <p className="text-lg text-muted-foreground">Unlock unlimited music creation with our flexible pricing options</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            <Card className="p-8 bg-card/30 border-border/20 hover:border-primary/50 transition-all">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold mb-2">Basic</h3>
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <span className="text-4xl font-bold">$4.99</span>
+                  <span className="text-muted-foreground">/week</span>
+                </div>
+                <span className="text-sm text-muted-foreground line-through">$7.99</span>
+              </div>
+              <Button className="w-full mb-6 bg-gradient-to-r from-teal-500 to-purple-500 hover:from-teal-600 hover:to-purple-600">
+                Get Started
+              </Button>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>1000 credits (100 songs)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Access to new model (V2.0)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Songs up to 8 mins, 5K lyrics</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>No daily limit</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Unlimited downloads</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Priority processing queue</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Standard sound</span>
+                </li>
+              </ul>
+            </Card>
+
+            <Card className="p-8 bg-gradient-to-br from-primary/10 to-purple-500/10 border-primary relative">
+              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-teal-500 to-purple-500">Most Popular</Badge>
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold mb-2">Standard</h3>
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <span className="text-4xl font-bold">$9.99</span>
+                  <span className="text-muted-foreground">/month</span>
+                </div>
+                <span className="text-sm text-muted-foreground line-through">$15.99</span>
+              </div>
+              <Button className="w-full mb-6 bg-gradient-to-r from-teal-500 to-purple-500 hover:from-teal-600 hover:to-purple-600">
+                Get Started
+              </Button>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>5000 credits (500 songs)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Access to new model (V2.0)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Songs up to 8 mins, 5K lyrics</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>No daily limit</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Unlimited downloads</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Priority processing queue</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Custom vibes & voices</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Upload reference audio</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Premium sound</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Export MIDI files</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Vocal & instrumental isolator</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Commercial use</span>
+                </li>
+              </ul>
+            </Card>
+
+            <Card className="p-8 bg-card/30 border-border/20 hover:border-primary/50 transition-all">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold mb-2">Pro</h3>
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <span className="text-4xl font-bold">$79.99</span>
+                  <span className="text-muted-foreground">/year</span>
+                </div>
+                <span className="text-sm text-muted-foreground line-through">$139.99</span>
+              </div>
+              <Button className="w-full mb-6 bg-gradient-to-r from-teal-500 to-purple-500 hover:from-teal-600 hover:to-purple-600">
+                Get Started
+              </Button>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>24000 credits (2400 songs)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Access to new model (V2.0)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Songs up to 8 mins, 5K lyrics</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>No daily limit</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Unlimited downloads</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Priority processing queue</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Custom vibes & voices</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Upload reference audio</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Premium sound</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Export MIDI files</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Vocal & instrumental isolator</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Commercial use</span>
+                </li>
+              </ul>
+            </Card>
+          </div>
+        </div>
+      </section>
+
 
       {/* Footer */}
       <footer className="py-12 px-6 border-t border-border/20">
