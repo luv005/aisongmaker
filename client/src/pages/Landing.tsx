@@ -700,7 +700,7 @@ export default function Landing() {
               <div className="text-center mb-6">
                 <h3 className="text-2xl font-bold mb-2">Basic</h3>
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <span className="text-4xl font-bold">$4.99</span>
+                  <span className="text-4xl font-bold">$5.99</span>
                   <span className="text-muted-foreground">/week</span>
                 </div>
                 <span className="text-sm text-muted-foreground line-through">$7.99</span>
@@ -745,7 +745,7 @@ export default function Landing() {
               <div className="text-center mb-6">
                 <h3 className="text-2xl font-bold mb-2">Standard</h3>
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <span className="text-4xl font-bold">$9.99</span>
+                  <span className="text-4xl font-bold">$10.99</span>
                   <span className="text-muted-foreground">/month</span>
                 </div>
                 <span className="text-sm text-muted-foreground line-through">$15.99</span>
