@@ -139,11 +139,11 @@ export default function Landing() {
       <section className="relative py-12 px-6 text-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background"></div>
         <div className="relative container max-w-6xl mx-auto">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-teal-400 to-purple-500 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-teal-400 to-purple-500 bg-clip-text text-transparent">
             Create Songs with AI Song Maker
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-4xl mx-auto">
-            Turn your text into music, songs for free with our music generator
+            Turn your text into music and songs for free with our ai music generator
           </p>
           <Button
             size="lg"
