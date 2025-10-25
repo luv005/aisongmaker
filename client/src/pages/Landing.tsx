@@ -136,14 +136,14 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
-      <section className="relative py-20 px-6 text-center overflow-hidden">
+      <section className="relative py-12 px-6 text-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background"></div>
         <div className="relative container max-w-6xl mx-auto">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-teal-400 to-purple-500 bg-clip-text text-transparent">
-            Unleash Your Inner Musician
+            Create Songs with AI Song Maker
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-4xl mx-auto">
-            Create unique, royalty-free music with our AI-powered song generator. Whether you have lyrics or just an idea, we bring your musical vision to life in seconds.
+            Turn your text into music, songs for free with our music generator
           </p>
           <Button
             size="lg"
@@ -156,11 +156,11 @@ export default function Landing() {
       </section>
 
       {/* AI Song Generator Section */}
-      <section id="generator" className="py-12 px-6">
-        <div className="container max-w-4xl mx-auto">
-          <Card className="p-8 border-border/40 bg-card/50 backdrop-blur-lg shadow-2xl">
+      <section id="generator" className="py-6 px-6">
+        <div className="container max-w-3xl mx-auto">
+          <Card className="p-6 border-border/40 bg-card/50 backdrop-blur-lg shadow-2xl">
             {/* Tabs */}
-            <div className="flex items-center gap-6 mb-8 border-b border-border pb-2">
+            <div className="flex items-center gap-6 mb-6 border-b border-border pb-2">
               <button
                 className={`px-4 py-2 text-lg font-medium transition-colors ${
                   activeTab === "lyrics"
